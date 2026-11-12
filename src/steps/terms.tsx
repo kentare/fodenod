@@ -41,7 +41,10 @@ const CLAUSES = [
 // repetition reads like intentional boilerplate.
 const PREFIXES = ["", "Med forbehold om foregående ledd: ", "Uten hensyn til ovenstående: "];
 
-const PARAGRAPHS = Array.from({ length: CLAUSES.length * PREFIXES.length }, (_, i) => {
+// 72 paragraphs: a full legitimate read takes ~80s at READ_PX_PER_S.
+const PARAGRAPH_COUNT = 72;
+
+const PARAGRAPHS = Array.from({ length: PARAGRAPH_COUNT }, (_, i) => {
   const major = Math.floor(i / 3) + 1;
   const minor = i % 3;
   const number = minor === 0 ? `§${major}` : `§${major}.${minor}`;
@@ -49,8 +52,8 @@ const PARAGRAPHS = Array.from({ length: CLAUSES.length * PREFIXES.length }, (_, 
   return { number, text: prefix + CLAUSES[i % CLAUSES.length] };
 });
 
-// The decoy checkbox sits in the middle of the wall of text, right after §16.1.
-const DECOY_AFTER = 46;
+// The decoy checkbox sits in the middle of the wall of text.
+const DECOY_AFTER = 37;
 const DECOY_REF = PARAGRAPHS[DECOY_AFTER].number;
 // The closing paragraph is numbered past the end, like a real appendix.
 const FINAL_REF = `§${PARAGRAPHS.length}`;
