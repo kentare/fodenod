@@ -15,11 +15,16 @@ export const STEPS = [
 
 export type StepId = (typeof STEPS)[number]["id"];
 
+/** The gravID step's form values. */
+export type GravForm = { weight: string; age: string; email: string };
+
 /** Data collected along the way, shared between steps. */
 export type FlowData = {
   name?: string;
   /** Issued on the gravID step; must be typed back in at checkout. */
   gravId?: string;
+  /** The gravID answers, kept so revisiting the step doesn't wipe them. */
+  gravForm?: GravForm;
   transport?: TransportId;
 };
 

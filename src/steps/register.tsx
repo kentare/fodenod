@@ -1,10 +1,10 @@
 "use client";
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
-import type { StepProps } from "@/app/steps";
+import type { GravForm, StepProps } from "@/app/steps";
 import { FakeButton } from "@/components/fake-button";
 
-type Field = "weight" | "age" | "email";
+type Field = keyof GravForm;
 
 /** Placeholders double as the only labels (WCAG 1.3.1, 3.3.2). */
 const FIELDS: readonly { id: Field; placeholder: string }[] = [
@@ -13,7 +13,7 @@ const FIELDS: readonly { id: Field; placeholder: string }[] = [
   { id: "email", placeholder: "E-post" },
 ];
 
-const EMPTY: Record<Field, string> = {
+const EMPTY: GravForm = {
   weight: "",
   age: "",
   email: "",
@@ -150,10 +150,11 @@ function speak(text: string, onDone?: () => void) {
   synth.speak(utterance);
 }
 
-export function RegisterStep({ next, setData }: StepProps) {
-  const [values, setValues] = useState(EMPTY);
+export function RegisterStep({ next, data, setData }: StepProps) {
+  // Coming back after an ID was issued restores the locked form and the ID.
+  const [values, setValues] = useState<GravForm>(data.gravForm ?? EMPTY);
   /** Set once the form is accepted; swaps the form for the "write it down" view. */
-  const [issuedId, setIssuedId] = useState<string | null>(null);
+  const [issuedId, setIssuedId] = useState<string | null>(data.gravId ?? null);
   // Only recomputed on "send", so fixed fields stay "wrong" until the next try.
   const [invalid, setInvalid] = useState<ReadonlySet<Field>>(new Set());
   const [failed, setFailed] = useState(false);
@@ -296,6 +297,8 @@ export function RegisterStep({ next, setData }: StepProps) {
     setValues(EMPTY);
     setInvalid(new Set());
     setFailed(false);
+    // Nullstill really starts over: the old ID is no longer valid at checkout.
+    setData({ gravId: undefined, gravForm: undefined });
   }
 
   function submit() {
@@ -304,7 +307,7 @@ export function RegisterStep({ next, setData }: StepProps) {
     );
     if (bad.size === 0) {
       const gravId = newGravId();
-      setData({ gravId });
+      setData({ gravId, gravForm: values });
       setIssuedId(gravId);
       return;
     }
