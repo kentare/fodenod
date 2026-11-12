@@ -1,9 +1,12 @@
-/** Listed in the order the ride picker shows them: the only working one last. */
+/**
+ * Listed in the order the ride picker shows them: the only working one last.
+ * `icon` picks the SVG drawn by `TransportIcon` (src/components/icons.tsx).
+ */
 export const TRANSPORTS = [
   {
     id: "ambulance",
     name: "Ambulanse",
-    emoji: "🚑",
+    icon: "ambulance",
     price: 18999,
     available: false,
     eta: "Ingen i nærheten",
@@ -12,7 +15,7 @@ export const TRANSPORTS = [
   {
     id: "taxi",
     name: "Taxi",
-    emoji: "🚕",
+    icon: "taxi",
     price: 2899,
     available: false,
     eta: "Sjåføren er på pause",
@@ -21,7 +24,7 @@ export const TRANSPORTS = [
   {
     id: "car",
     name: "Bil",
-    emoji: "🚗",
+    icon: "car",
     price: 1450,
     available: false,
     eta: "Nøklene er borte",
@@ -30,7 +33,7 @@ export const TRANSPORTS = [
   {
     id: "scooter",
     name: "Elsparkesykkel",
-    emoji: "🛴",
+    icon: "scooter",
     price: 49,
     available: true,
     eta: "3 min unna",

@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { StepProps } from "@/app/steps";
 import { FakeButton } from "@/components/fake-button";
+import { StarIcon, TransportIcon } from "@/components/icons";
 import { getTransport } from "@/steps/transport-options";
 
 /** Characters picked to be as confusable as possible. */
@@ -18,6 +19,8 @@ function randomOrderNumber() {
   return Array.from({ length: 6 }, group).join("-");
 }
 
+const RESERVATION_SECONDS = 15;
+
 export function EndStep({ data, restart }: StepProps) {
   const transport = getTransport(data.transport);
   const [orderNumber] = useState(randomOrderNumber);
@@ -25,6 +28,17 @@ export function EndStep({ data, restart }: StepProps) {
   const [rated, setRated] = useState(false);
   const [cancelTried, setCancelTried] = useState(false);
   const [trackTried, setTrackTried] = useState(false);
+  // The reservation is only held briefly; then we suggest walking instead.
+  const [secondsLeft, setSecondsLeft] = useState(RESERVATION_SECONDS);
+  const expired = secondsLeft === 0;
+
+  useEffect(() => {
+    const timer = setInterval(
+      () => setSecondsLeft((s) => Math.max(0, s - 1)),
+      1000,
+    );
+    return () => clearInterval(timer);
+  }, []);
 
   return (
     <main
@@ -44,10 +58,28 @@ export function EndStep({ data, restart }: StepProps) {
       <div className="flex w-[min(480px,92vw)] flex-col items-center gap-12 text-center">
         <section>
           <p className="text-xs">Hei {data.name ?? "{{fornavn}}"},</p>
-          <h1 className="mt-3 text-3xl leading-tight font-extralight text-blush-deep">
-            Gratulerer! Din {transport.name.toLowerCase()} {transport.emoji} er
-            bestilt.
-          </h1>
+          {expired ? (
+            <>
+              <h1 className="mt-3 text-3xl leading-tight font-extralight text-blush-deep">
+                Reservasjonen din har utløpt.
+              </h1>
+              <p className="mt-4 text-sm">Vi anbefaler at du går.</p>
+              <p className="mt-1 text-[12px] text-ink-faint">
+                Gå rett frem. Ta til venstre ved fødselen.
+              </p>
+            </>
+          ) : (
+            <>
+              <h1 className="mt-3 text-3xl leading-tight font-extralight text-blush-deep">
+                Gratulerer! Din {transport.name.toLowerCase()}{" "}
+                <TransportIcon icon={transport.icon} size={40} className="inline-block align-[-0.15em]" /> er
+                bestilt.
+              </h1>
+              <p className="mt-4 inline-block rounded-full bg-blush-soft px-3 py-1 text-[12px] tabular-nums">
+                Reservasjonen holdes i 0:{String(secondsLeft).padStart(2, "0")}
+              </p>
+            </>
+          )}
         </section>
 
         <section className="text-sm font-light">
@@ -78,13 +110,8 @@ export function EndStep({ data, restart }: StepProps) {
                   key={i}
                   onMouseEnter={() => setHovered(i)}
                   onClick={() => setRated(true)}
-                  className={
-                    hovered !== null && i >= hovered
-                      ? "text-blush"
-                      : "text-blush-soft"
-                  }
                 >
-                  ★
+                  <StarIcon size={34} filled={hovered !== null && i >= hovered} />
                 </FakeButton>
               ))}
             </div>

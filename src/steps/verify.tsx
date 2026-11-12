@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { StepProps } from "@/app/steps";
+import { EyeRollIcon } from "@/components/icons";
 import { isPregnant, smooth } from "@/lib/clip-math";
 import {
   drawOverlay,
@@ -286,7 +287,8 @@ export function VerifyStep({ next }: StepProps) {
         <div className="mt-4 flex min-h-16 items-center justify-center text-center">
           {mercy ? (
             <span className="text-3xl font-extralight text-blush">
-              Greit nok. 🙄
+              Greit nok.{" "}
+              <EyeRollIcon size={36} className="inline-block align-[-0.15em]" />
             </span>
           ) : verdict ? (
             <span className="text-4xl font-extralight tracking-tight text-blush">

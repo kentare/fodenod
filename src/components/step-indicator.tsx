@@ -1,4 +1,5 @@
 import { STEPS, type StepId } from "@/app/steps";
+import { HomeIcon, HospitalIcon } from "@/components/icons";
 import { Logo } from "@/components/logo";
 
 /** Every step except the loader and the landing page, which get no indicator. */
@@ -6,10 +7,11 @@ const VISIBLE_STEPS = STEPS.filter((s) => s.id !== "loading" && s.id !== "intro"
 
 /**
  * Where the ambulance parks on the last step, in track lengths from home.
- * The track is 40vw wide and sits a bit right of centre (the counter is on
- * its left), so the screen edge is ~1.6 track lengths from home.
+ * The track is 40vw wide and centred (the end icons are the same size), so
+ * it starts at 30vw and the screen edge is 1.75 track lengths from home.
+ * 1.66 parks the 38px mark just inside the edge (right side ~1253px at 1280).
  */
-const EDGE = 1.55;
+const EDGE = 1.66;
 
 /**
  * Ambulance position for a step, in track lengths: home on step 1, straight
@@ -25,10 +27,8 @@ function progressFor(index: number) {
  * A "home → hospital" journey strip pinned to the top of the page.
  *
  * The track only has two points, and the ambulance (the logo mark, mirrored
- * so it reverses like the 🚑 emoji it replaced) gets to the hospital already
- * on step 2, then keeps inching past it towards the edge of the screen on
- * every later step. The counter claims
- * there are only 2 steps, so you end up on "Steg 5 av 2".
+ * so it drives in reverse) gets to the hospital already on step 2, then keeps
+ * inching past it towards the edge of the screen on every later step.
  *
  * WCAG zero: colour/position is the only signal (1.4.1), nothing is exposed
  * to assistive tech, and the "progress" is a lie.
@@ -37,7 +37,6 @@ export function StepIndicator({ current }: { current: StepId }) {
   const index = VISIBLE_STEPS.findIndex((s) => s.id === current);
   if (index === -1) return null;
 
-  const position = index + 1;
   const progress = progressFor(index);
 
   return (
@@ -50,8 +49,7 @@ export function StepIndicator({ current }: { current: StepId }) {
       {/* White backing only behind the strip itself, so full-width content at
           the very top (e.g. the end screen's ticker) stays visible either side. */}
       <div className="flex items-center gap-4 rounded-b-3xl bg-paper px-8 text-[23px] text-ink-faint">
-        <span className="mr-4 whitespace-nowrap">Steg {position} av 2</span>
-        <span>🏠</span>
+        <HomeIcon size={26} />
         <div className="relative h-0.5 w-[40vw] bg-blush">
           <span className="absolute top-1/2 left-0 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blush-deep" />
           <span className="absolute top-1/2 right-0 size-3 translate-x-1/2 -translate-y-1/2 rounded-full bg-blush-deep" />
@@ -62,7 +60,7 @@ export function StepIndicator({ current }: { current: StepId }) {
             <Logo size={38} className="block -scale-x-100" />
           </span>
         </div>
-        <span>🏥</span>
+        <HospitalIcon size={26} />
       </div>
     </div>
   );

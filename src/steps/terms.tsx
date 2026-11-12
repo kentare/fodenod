@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { StepProps } from "@/app/steps";
 import { FakeButton } from "@/components/fake-button";
+import { CrossMarkIcon, ThumbDownIcon, ThumbUpIcon } from "@/components/icons";
 
 const CLAUSES = [
   "Fødenød AS fraskriver seg ethvert ansvar for fødsler som skjer under lasting.",
@@ -145,7 +146,7 @@ function TinyBox({ checked, onToggle }: { checked: boolean; onToggle: () => void
       onClick={onToggle}
       className="mt-[4px] flex h-[14px] w-[14px] shrink-0 items-center justify-center rounded-[3px] border border-blush bg-paper text-[13px] leading-none text-ink"
     >
-      {checked ? "✗" : ""}
+      {checked && <CrossMarkIcon size={12} />}
     </div>
   );
 }
@@ -218,7 +219,7 @@ export function TermsStep({ next, restart }: StepProps) {
         <div className="-mt-1 flex flex-col gap-1 text-xs text-ink-faint">
           <div className="flex items-center justify-between">
             {/* Speedometer: 👍 at a legal reading pace, 👎 while you skim. */}
-            <span className="text-3xl leading-none">{tooFast ? "👎" : "👍"}</span>
+            {tooFast ? <ThumbDownIcon size={32} /> : <ThumbUpIcon size={32} />}
             <span className="tabular-nums">lest: {readPercent} %</span>
           </div>
           {tooFastWpm !== null && (

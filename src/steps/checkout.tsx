@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { StepProps } from "@/app/steps";
 import { FakeButton } from "@/components/fake-button";
+import { ArrowLeftIcon } from "@/components/icons";
 import { formatNok, PRICIEST } from "@/steps/transport-options";
 
 /** You pay for the priciest ride up front; you choose the actual one later. */
@@ -11,7 +12,6 @@ const BOOKING_FEE = 149;
 const FEE_FOR_FEE_RATE = 0.1;
 const ENV_PERCENT = 7;
 const ENV_MIN = 29;
-const MIL_FEE = 499;
 const TIP_MIN = 10;
 const TIP_MAX = 50;
 const TIP_DEFAULT = 25;
@@ -19,7 +19,7 @@ const OFFER_SECONDS = 59;
 const MONTHS = 36;
 const INTEREST = 1.299;
 
-type AddonId = "priority" | "insurance" | "mil";
+type AddonId = "priority" | "insurance";
 
 const ADDONS: {
   id: AddonId;
@@ -41,13 +41,6 @@ const ADDONS: {
     price: 1299,
     shame:
       "Fjerne Babyforsikring?\n\nGreit. Vi håper bare babyen din aldri faller ned fra noe de neste 18 årene.\n\nTrykk OK hvis du tar sjansen med ditt eget barn.",
-  },
-  {
-    id: "mil",
-    label: "Svigermor-modus: hun blir med",
-    price: 0,
-    shame:
-      "Fjerne Svigermor-modus?\n\nHun har allerede pakket. Hun står i gangen. Hun har kjøpt ny kåpe til anledningen.\n\nTrykk OK for å ringe og fortelle henne det selv.",
   },
 ];
 
@@ -81,7 +74,6 @@ export function CheckoutStep({ next, data, setData, goTo }: StepProps) {
   const [addons, setAddons] = useState<Record<AddonId, boolean>>({
     priority: true,
     insurance: true,
-    mil: true,
   });
   const [tip, setTip] = useState(TIP_DEFAULT);
   const [seconds, setSeconds] = useState(OFFER_SECONDS);
@@ -107,7 +99,7 @@ export function CheckoutStep({ next, data, setData, goTo }: StepProps) {
   };
 
   const addMore = () => {
-    setAddons({ priority: true, insurance: true, mil: true });
+    setAddons({ priority: true, insurance: true });
     setTip((t) => Math.min(TIP_MAX, t + 5));
     setUpsellNote(
       "Alle tillegg er lagt til igjen, og vi har rundet opp driksen. Flere tillegg kommer snart!",
@@ -150,9 +142,6 @@ export function CheckoutStep({ next, data, setData, goTo }: StepProps) {
       label: a.label,
       amount: a.price,
     })),
-    ...(addons.mil
-      ? [{ label: "Svigermor-håndteringsgebyr", amount: MIL_FEE }]
-      : []),
     { label: `Driks (${tip} %)`, amount: tipAmount },
   ];
   const total = lines.reduce((sum, l) => sum + l.amount, 0);
@@ -172,7 +161,7 @@ export function CheckoutStep({ next, data, setData, goTo }: StepProps) {
           }}
           className="self-start rounded-full border border-blush-deep px-4 py-1.5 text-sm text-blush-deep"
         >
-          ← Tilbake
+          <ArrowLeftIcon size={16} className="inline-block align-[-0.15em]" /> Tilbake
         </FakeButton>
         <div className="flex flex-col items-center gap-3">
           <h1 className="text-3xl font-light tracking-tight text-blush-deep">
@@ -290,8 +279,7 @@ export function CheckoutStep({ next, data, setData, goTo }: StepProps) {
           en pris vi kunne ha tatt. Forhåndsbelastningen refunderes ikke,
           uansett hvilken transport du velger senere. Beløpet trekkes automatisk
           fra kortet du oppga tidligere, også hvis du lukker siden. Driks går
-          til sjåføren eller til oss. Svigermor-modus kan ikke angres etter
-          fødsel. Ved å fortsette godtar du vilkårene du godtok tidligere, og
+          til sjåføren eller til oss. Ved å fortsette godtar du vilkårene du godtok tidligere, og
           noen nye.
         </p>
       </div>

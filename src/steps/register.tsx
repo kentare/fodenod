@@ -3,6 +3,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { GravForm, StepProps } from "@/app/steps";
 import { FakeButton } from "@/components/fake-button";
+import { MicIcon, StopIcon } from "@/components/icons";
 
 type Field = keyof GravForm;
 
@@ -404,8 +405,8 @@ export function RegisterStep({ next, data, setData, goTo }: StepProps) {
           data-above-snow
           className="fixed inset-0 z-[950] flex flex-col items-center justify-center gap-6 bg-paper/80"
         >
-          <div className="flex size-48 animate-pulse items-center justify-center rounded-full bg-blush-soft text-[110px] leading-none">
-            🎙️
+          <div className="flex size-48 animate-pulse items-center justify-center rounded-full bg-blush-soft">
+            <MicIcon size={108} />
           </div>
           <p className="text-lg font-light text-blush-deep">Tale-til-tekst har startet</p>
           {/* Live transcript (interim results), plus what will land in the field. */}
@@ -423,7 +424,7 @@ export function RegisterStep({ next, data, setData, goTo }: StepProps) {
             onClick={() => stopRef.current?.()}
             className="rounded-full border border-blush-deep px-8 py-2 text-sm text-blush-deep"
           >
-            ■ Stopp
+            <StopIcon size={16} className="inline-block align-[-0.15em]" /> Stopp
           </FakeButton>
         </div>
       )}

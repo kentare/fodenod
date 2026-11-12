@@ -3,6 +3,7 @@
 import { useState } from "react";
 import type { StepProps } from "@/app/steps";
 import { FakeButton } from "@/components/fake-button";
+import { TransportIcon } from "@/components/icons";
 import {
   formatNok,
   getTransport,
@@ -60,7 +61,7 @@ export function TransportStep({ next, setData }: StepProps) {
                   : "border-blush-soft bg-paper"
               } ${t.available ? "" : "opacity-50"}`}
             >
-              <span className="text-4xl leading-none">{t.emoji}</span>
+              <TransportIcon icon={t.icon} size={42} className="shrink-0" />
               <span className="flex min-w-0 flex-1 flex-col">
                 <span className="text-sm">{t.name}</span>
                 {t.available ? (

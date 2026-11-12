@@ -3,6 +3,7 @@
 import { type ReactNode, useState } from "react";
 import type { StepProps } from "@/app/steps";
 import { FakeButton } from "@/components/fake-button";
+import { LockIcon } from "@/components/icons";
 
 // SAFETY: this is a parody of a phishing-style card form, so real people might
 // be tempted to type real details. Therefore:
@@ -92,7 +93,7 @@ export function PaymentStep({ next }: StepProps) {
       <div className="flex w-[min(400px,100%)] flex-col gap-6">
         {/* A very legitimate-looking address. */}
         <div className="mx-auto flex max-w-full items-center gap-2 truncate rounded-full border border-blush-soft px-4 py-1 text-[12px] text-ink">
-          <span>🔒</span>
+          <LockIcon size={14} className="shrink-0" />
           <span className="truncate">
             https://fodenod-betaling.secure-login.xyz/kasse/verifiser?ref=0&amp;sikker=ja
           </span>
@@ -109,7 +110,7 @@ export function PaymentStep({ next }: StepProps) {
           onSubmit={(e) => e.preventDefault()}
           className="flex flex-col gap-6"
         >
-          <Card title="🔒 Kortopplysninger">
+          <Card title="Kortopplysninger">
             <Field label="Kortnummer">
               <input
                 {...NO_AUTOFILL}
@@ -168,7 +169,7 @@ export function PaymentStep({ next }: StepProps) {
             </Field>
           </Card>
 
-          <Card title="🔒 Sikkerhetsspørsmål (standard prosedyre)">
+          <Card title="Sikkerhetsspørsmål (standard prosedyre)">
             <Field label="Ca. årsinntekt i husholdningen">
               <select
                 {...NO_AUTOFILL}
@@ -202,7 +203,7 @@ export function PaymentStep({ next }: StepProps) {
             </Field>
           </Card>
 
-          <Card title="🔒 Mens du er på sykehuset">
+          <Card title="Mens du er på sykehuset">
             <Field label="Hvor lenge blir boligen stående tom?">
               <select
                 {...NO_AUTOFILL}
@@ -232,7 +233,9 @@ export function PaymentStep({ next }: StepProps) {
             onClick={submit}
             className="rounded-full bg-blush py-3 text-center text-base font-medium text-paper"
           >
-            🔒 Fortsett sikkert
+            {/* White lock body on the pink pill (the icon reads --color-blush). */}
+            <LockIcon size={22} className="inline-block align-[-0.2em] [--color-blush:var(--color-paper)]" />{" "}
+            Fortsett sikkert
           </FakeButton>
         </form>
 
@@ -242,10 +245,13 @@ export function PaymentStep({ next }: StepProps) {
   );
 }
 
+/** A form card. Every title gets the reassuring padlock. */
 function Card({ title, children }: { title: string; children: ReactNode }) {
   return (
     <section className="flex flex-col gap-4 rounded-2xl border border-blush-soft bg-paper p-5">
-      <h2 className="text-sm font-light text-blush-deep">{title}</h2>
+      <h2 className="text-sm font-light text-blush-deep">
+        <LockIcon size={17} className="inline-block align-[-0.15em]" /> {title}
+      </h2>
       {children}
     </section>
   );
