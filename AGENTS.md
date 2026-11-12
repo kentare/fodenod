@@ -35,9 +35,17 @@ Every screen shares one look. The bad experience comes from behaviour and access
 
 ### Hard limits (don't cross these)
 
-1. **The flow must stay completable** with a mouse on a desktop browser. Annoying is good; impossible is not.
+1. **The flow must stay completable** with a mouse and keyboard on a desktop browser. Annoying is good; impossible is not.
 2. **Nothing flashes more than 3 times per second** (WCAG 2.3.1). Seizure risk is real harm, not a joke.
 3. **The dev panel (`src/components/dev-panel.tsx`) stays usable.** It's tooling, not part of the entry.
+
+### Parody forms (payment step)
+
+The payment step looks like a real card form, so real people might type real details. Keep it safe:
+
+- Nothing entered leaves component state: no `setData`, storage, network or logging.
+- Block autofill: `autoComplete="off"`, no `name`/`id`/`cc-*` hints, no `type="password"` (mask with `-webkit-text-security`), and labels drawn with CSS so browsers don't detect card fields.
+- No real brands, banks or regulators. Keep the visible "Dette er en parodi…" footnote.
 
 ### Steps
 

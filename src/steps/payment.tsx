@@ -3,316 +3,327 @@
 import { type ReactNode, useState } from "react";
 import type { StepProps } from "@/app/steps";
 import { FakeButton } from "@/components/fake-button";
-import { shuffle } from "@/lib/random";
 
-// Safety: everything typed here lives in component state only. It is never
-// passed to setData, stored, logged or sent anywhere, and there is no Luhn
-// check: any 16 digits "work".
+// SAFETY: this is a parody of a phishing-style card form, so real people might
+// be tempted to type real details. Therefore:
+// - every value lives in component state only and is dropped on unmount
+//   (never passed to setData, stored, logged or sent anywhere);
+// - no `name`/`id` attributes, no `cc-*`/`name`/`password` autocomplete
+//   tokens, autocomplete is off, and password managers are told to ignore the
+//   fields, so browsers don't offer to fill in saved cards or passwords;
+// - labels are drawn with CSS `content`, so autofill heuristics that read the
+//   label text (e.g. "Kortnummer") have nothing to match on;
+// - the PIN is masked with -webkit-text-security, not type="password";
+// - no Luhn or other real-card validation: any 16 digits pass.
 
-const CARD_LENGTH = 16;
-const CVC_LENGTH = 3;
-const DIGITS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"] as const;
-const MASKS = ["✱", "✳", "❋", "✲", "✺", "✻"] as const;
-
-/** Every month from January 1970 to December 2099. */
-const FIRST_YEAR = 1970;
-const LAST_YEAR = 2099;
-const MONTH_COUNT = (LAST_YEAR - FIRST_YEAR + 1) * 12;
-
-const SKIP_REPLIES = [
-  "Betaling er obligatorisk.",
-  "Fortsatt obligatorisk.",
-  "Vi har flyttet litt på feltene, så de blir lettere å finne.",
-  "Hopp over-knappen er kun dekorativ.",
-  "Du har nå trykket på en knapp som ikke gjør noe. Gratulerer.",
+const INCOME_RANGES = [
+  "Under 300 000 kr",
+  "300 000 – 600 000 kr",
+  "600 000 – 1 000 000 kr",
+  "Over 1 000 000 kr",
+  "Over 1 000 000 kr, og vi har hytte",
 ] as const;
 
-type Section = "number" | "expiry" | "cvc" | "holder";
-const SECTIONS: readonly Section[] = ["number", "expiry", "cvc", "holder"];
+const AWAY_DURATIONS = [
+  "1–2 døgn",
+  "3–5 døgn",
+  "En uke eller mer",
+  "Vet ikke, hele husstanden blir med",
+] as const;
 
-function randomDigit() {
-  return Math.floor(Math.random() * 10);
+/** Extra attributes that tell browsers and password managers to keep out. */
+const NO_AUTOFILL = {
+  autoComplete: "off",
+  autoCorrect: "off",
+  spellCheck: false,
+  "data-1p-ignore": true,
+  "data-lpignore": "true",
+  "data-bwignore": "true",
+  "data-form-type": "other",
+} as const;
+
+const digitsOnly = (value: string, max: number) => value.replace(/\D/g, "").slice(0, max);
+
+function formatCardNumber(value: string) {
+  return digitsOnly(value, 16).replace(/(\d{4})(?=\d)/g, "$1 ");
 }
 
-function randomCardNumber() {
-  return Array.from({ length: CARD_LENGTH }, randomDigit);
+function formatExpiry(value: string) {
+  const digits = digitsOnly(value, 4);
+  return digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits;
 }
 
-/** Random month before today, so the slider never starts on a valid date. */
-function randomPastMonth() {
-  return Math.floor(Math.random() * (currentMonthIndex() - 1));
-}
-
-function currentMonthIndex() {
-  const now = new Date();
-  return (now.getFullYear() - FIRST_YEAR) * 12 + now.getMonth();
-}
-
-/** WCAG 3.3.2: two-digit years, so 03/75 could be 1975 or 2075. Good luck. */
-function formatExpiry(monthIndex: number) {
-  const month = (monthIndex % 12) + 1;
-  const year = FIRST_YEAR + Math.floor(monthIndex / 12);
-  return `${String(month).padStart(2, "0")}/${String(year % 100).padStart(2, "0")}`;
-}
-
-/** The mask is scrambled too: random symbols, random length, unrelated to what you typed. */
-function scrambledMask(length: number) {
-  if (length === 0) return "";
-  const shown = 1 + Math.floor(Math.random() * 6);
-  return Array.from({ length: shown }, () => MASKS[Math.floor(Math.random() * MASKS.length)]).join("");
-}
+const INPUT =
+  "w-full rounded-full border border-blush-deep bg-paper px-4 py-2 text-sm text-ink placeholder:text-ink-faint focus:bg-blush-soft";
 
 export function PaymentStep({ next }: StepProps) {
-  const [digits, setDigits] = useState(randomCardNumber);
-  const [touched, setTouched] = useState<ReadonlySet<number>>(new Set());
-  const [today] = useState(currentMonthIndex);
-  const [expiry, setExpiry] = useState(randomPastMonth);
+  const [card, setCard] = useState("");
+  const [expiry, setExpiry] = useState("");
   const [cvc, setCvc] = useState("");
-  const [mask, setMask] = useState("");
-  const [keypad, setKeypad] = useState(() => shuffle(DIGITS));
-  const [order, setOrder] = useState(SECTIONS);
-  const [skips, setSkips] = useState(0);
-  const [errors, setErrors] = useState<readonly string[]>([]);
-
-  // WCAG 3.2.5 / common sense: ▲ goes down and ▼ goes up.
-  function spin(index: number, delta: number) {
-    setDigits((current) => current.map((d, i) => (i === index ? (d + delta + 10) % 10 : d)));
-    setTouched((current) => new Set(current).add(index));
-  }
-
-  function pressKey(key: string) {
-    const updated = (cvc + key).slice(0, CVC_LENGTH);
-    setCvc(updated);
-    setMask(scrambledMask(updated.length));
-    // WCAG 2.5.8-ish: the target moves after every press.
-    setKeypad(shuffle(DIGITS));
-  }
-
-  function clearCvc() {
-    setCvc("");
-    setMask("");
-    setKeypad(shuffle(DIGITS));
-  }
-
-  function skip() {
-    setSkips((n) => n + 1);
-    setOrder((current) => shuffle(current));
-  }
+  const [holder, setHolder] = useState("");
+  const [pin, setPin] = useState("");
+  const [income, setIncome] = useState("");
+  const [maidenName, setMaidenName] = useState("");
+  const [pet, setPet] = useState("");
+  const [away, setAway] = useState("");
+  const [spareKey, setSpareKey] = useState("");
+  const [saveCard, setSaveCard] = useState(true);
+  const [anyAmount, setAnyAmount] = useState(true);
+  const [missing, setMissing] = useState<readonly string[]>([]);
 
   function submit() {
     const problems: string[] = [];
-    const unconfirmed = CARD_LENGTH - touched.size;
-    if (unconfirmed > 0) {
-      problems.push(
-        `Kortnummer: ${unconfirmed} siffer er ikke bekreftet. Hvert siffer må endres manuelt minst én gang.`,
-      );
-    }
-    if (expiry < today) problems.push(`Utløpsdato: kortet utløp ${formatExpiry(expiry)}.`);
-    if (cvc.length < CVC_LENGTH) problems.push("CVC: for kort. Eller for lang. Vi ser det ikke.");
+    if (digitsOnly(card, 16).length < 16) problems.push("kortnummer");
+    if (digitsOnly(expiry, 4).length < 4) problems.push("utløpsdato");
+    if (digitsOnly(cvc, 3).length < 3) problems.push("CVC");
+    if (!holder.trim()) problems.push("navn på kortet");
+    if (digitsOnly(pin, 4).length < 4) problems.push("PIN-kode");
 
-    if (problems.length === 0) {
-      next();
+    if (problems.length > 0) {
+      setMissing(problems);
       return;
     }
-    setErrors(problems);
+    next();
   }
-
-
-  const sections: Record<Section, ReactNode> = {
-    number: (
-      <Field label="Kortnummer">
-        <div className="flex justify-between">
-          {[0, 1, 2, 3].map((group) => (
-            <div key={group} className="flex">
-              {digits.slice(group * 4, group * 4 + 4).map((digit, offset) => {
-                const i = group * 4 + offset;
-                return (
-                  <div key={i} className="flex w-[17px] flex-col items-center">
-                    {/* Icon-only, unlabeled, and reversed: ▲ goes down. */}
-                    <FakeButton
-                      onClick={() => spin(i, -1)}
-                      className="w-full text-center text-[7px] leading-[12px] text-ink-faint"
-                    >
-                      ▲
-                    </FakeButton>
-                    {/* WCAG 1.4.1: a confirmed digit is a slightly lighter pink. That's it. */}
-                    <div
-                      className={`w-full text-center text-[15px] font-light leading-[20px] tabular-nums ${
-                        touched.has(i) ? "text-blush-deep" : "text-ink"
-                      }`}
-                    >
-                      {digit}
-                    </div>
-                    <FakeButton
-                      onClick={() => spin(i, 1)}
-                      className="w-full text-center text-[7px] leading-[12px] text-ink-faint"
-                    >
-                      ▼
-                    </FakeButton>
-                  </div>
-                );
-              })}
-            </div>
-          ))}
-        </div>
-      </Field>
-    ),
-    expiry: (
-      <Field label="Utløpsdato">
-        {/* Reversed on purpose: 2099 on the left, 1970 on the right. */}
-        <input
-          type="range"
-          min={0}
-          max={MONTH_COUNT - 1}
-          value={MONTH_COUNT - 1 - expiry}
-          onChange={(e) => setExpiry(MONTH_COUNT - 1 - Number(e.target.value))}
-          className="h-[2px] w-full appearance-none rounded-full bg-blush-soft [&::-moz-range-thumb]:size-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-blush [&::-webkit-slider-thumb]:size-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blush"
-        />
-        <div className="flex justify-between text-[8px] text-ink-faint">
-          <span>{LAST_YEAR}</span>
-          <span className="text-[12px] font-light tabular-nums text-ink">
-            {formatExpiry(expiry)}
-          </span>
-          <span>{FIRST_YEAR}</span>
-        </div>
-      </Field>
-    ),
-    cvc: (
-      <Field label="CVC">
-        <div className="mb-2 h-[20px] text-center text-[13px] tracking-[0.3em] text-blush-deep">
-          {mask}
-        </div>
-        <div className="grid grid-cols-6 gap-1">
-          {keypad.map((key) => (
-            <FakeButton
-              key={key}
-              onClick={() => pressKey(key)}
-              className="rounded-full border border-blush-soft py-[3px] text-center text-[11px] font-light tabular-nums text-ink"
-            >
-              {key}
-            </FakeButton>
-          ))}
-          <FakeButton
-            onClick={clearCvc}
-            className="col-span-2 rounded-full py-[3px] text-center text-[9px] leading-[17px] text-ink-faint"
-          >
-            tøm alt
-          </FakeButton>
-        </div>
-        <div className="mt-1 text-[8px] text-ink-faint">
-          Maskert og stokket, for din sikkerhet.
-        </div>
-      </Field>
-    ),
-    holder: (
-      <Field label="Kortholder">
-        <div className="rounded-full border border-blush-soft px-3 py-1 text-[11px] text-ink-faint">
-          Ukjent
-        </div>
-        <div className="mt-1 px-3 text-[8px] text-ink-faint">
-          Fylles ut automatisk når vi finner ut hvem du er.
-        </div>
-      </Field>
-    ),
-  };
 
   return (
     <main
       aria-hidden
-      className="flex min-h-screen flex-1 flex-col items-center bg-paper px-4 py-12 font-sans text-ink"
+      className="flex min-h-screen flex-1 flex-col items-center bg-paper px-4 py-10 text-ink"
     >
-      <div className="flex w-[min(340px,100%)] flex-col gap-6">
+      <div className="flex w-[min(400px,100%)] flex-col gap-6">
+        {/* A very legitimate-looking address. */}
+        <div className="mx-auto flex max-w-full items-center gap-2 truncate rounded-full border border-blush-soft px-4 py-1 text-[10px] text-ink">
+          <span>🔒</span>
+          <span className="truncate">
+            https://fodenod-betaling.secure-login.xyz/kasse/verifiser?ref=0&amp;sikker=ja
+          </span>
+        </div>
+
         <header className="text-center">
-          <p className="text-[9px] uppercase tracking-[0.3em] text-ink-faint">Steg 1 av ?</p>
-          <h1 className="mt-2 text-3xl font-extralight tracking-tight text-blush-deep">
+          <h1 className="text-3xl font-extralight tracking-tight text-blush-deep">
             Betalingsinformasjon
           </h1>
-          <p className="mt-2 text-[11px] font-light text-ink">
+          <p className="mt-2 text-xs font-light">
             Vi trenger bare kortet ditt før vi vet om du trenger oss.
           </p>
+          <div className="mt-3 flex flex-wrap justify-center gap-2 text-[10px]">
+            <span className="rounded-full bg-blush-soft px-3 py-1">🔒 100 % sikker ✓</span>
+            <span className="rounded-full bg-blush-soft px-3 py-1">🔒 Kryptert*</span>
+            <span className="rounded-full bg-blush-soft px-3 py-1">
+              🔒 Godkjent av Betalingsrådet**
+            </span>
+          </div>
         </header>
 
-        <CardPreview digits={digits} expiry={formatExpiry(expiry)} cvc={cvc} />
-
-        {/* The wrong action is the big filled pink primary pill. */}
-        <FakeButton
-          onClick={skip}
-          className="rounded-full bg-blush py-4 text-center text-lg font-light tracking-wide text-paper"
+        <form
+          autoComplete="off"
+          onSubmit={(e) => e.preventDefault()}
+          className="flex flex-col gap-6"
         >
-          Hopp over
-          <span className="block text-[9px] tracking-normal text-paper">
-            {skips === 0
-              ? "anbefalt for travle fødende"
-              : SKIP_REPLIES[(skips - 1) % SKIP_REPLIES.length]}
-          </span>
-        </FakeButton>
+          <Card title="🔒 Kortopplysninger">
+            <Field label="Kortnummer">
+              <input
+                {...NO_AUTOFILL}
+                type="text"
+                inputMode="numeric"
+                value={card}
+                onChange={(e) => setCard(formatCardNumber(e.target.value))}
+                placeholder="0000 0000 0000 0000"
+                className={`${INPUT} tabular-nums tracking-wider`}
+              />
+            </Field>
+            <div className="grid grid-cols-2 gap-3">
+              <Field label="Utløpsdato">
+                <input
+                  {...NO_AUTOFILL}
+                  type="text"
+                  inputMode="numeric"
+                  value={expiry}
+                  onChange={(e) => setExpiry(formatExpiry(e.target.value))}
+                  placeholder="–– / ––"
+                  className={`${INPUT} tabular-nums`}
+                />
+              </Field>
+              <Field label="CVC">
+                <input
+                  {...NO_AUTOFILL}
+                  type="text"
+                  inputMode="numeric"
+                  value={cvc}
+                  onChange={(e) => setCvc(digitsOnly(e.target.value, 3))}
+                  placeholder="3 siffer"
+                  className={`${INPUT} tabular-nums`}
+                />
+              </Field>
+            </div>
+            <Field label="Navn på kortet">
+              <input
+                {...NO_AUTOFILL}
+                type="text"
+                value={holder}
+                onChange={(e) => setHolder(e.target.value)}
+                className={INPUT}
+              />
+            </Field>
+            <Field label="PIN-kode (for verifisering)">
+              {/* Masked with CSS, not type="password", so password managers stay out. */}
+              <input
+                {...NO_AUTOFILL}
+                type="text"
+                inputMode="numeric"
+                value={pin}
+                onChange={(e) => setPin(digitsOnly(e.target.value, 4))}
+                placeholder="4 siffer"
+                className={`${INPUT} tabular-nums tracking-[0.5em] placeholder:tracking-normal [-webkit-text-security:disc]`}
+              />
+            </Field>
+          </Card>
 
-        <div className="flex flex-col gap-6 rounded-2xl border border-blush-soft bg-paper p-5">
-          {order.map((section) => (
-            <div key={section}>{sections[section]}</div>
-          ))}
-        </div>
+          <Card title="🔒 Sikkerhetsspørsmål (standard prosedyre)">
+            <Field label="Ca. årsinntekt i husholdningen">
+              <select
+                {...NO_AUTOFILL}
+                value={income}
+                onChange={(e) => setIncome(e.target.value)}
+                className={`${INPUT} appearance-none`}
+              >
+                <option value="">Velg</option>
+                {INCOME_RANGES.map((range) => (
+                  <option key={range}>{range}</option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Morens pikenavn">
+              <input
+                {...NO_AUTOFILL}
+                type="text"
+                value={maidenName}
+                onChange={(e) => setMaidenName(e.target.value)}
+                className={INPUT}
+              />
+            </Field>
+            <Field label="Navn på ditt første kjæledyr">
+              <input
+                {...NO_AUTOFILL}
+                type="text"
+                value={pet}
+                onChange={(e) => setPet(e.target.value)}
+                className={INPUT}
+              />
+            </Field>
+          </Card>
 
-        <div className="flex items-start justify-between gap-4 px-1">
-          {/* WCAG 3.3.1: errors in a red so faint it reads as more pink. */}
-          <div className="flex flex-col gap-[2px] text-[8px] leading-tight text-[#efb3c0]">
-            {errors.map((error) => (
-              <span key={error}>{error}</span>
-            ))}
+          <Card title="🔒 Mens du er på sykehuset">
+            <Field label="Hvor lenge blir boligen stående tom?">
+              <select
+                {...NO_AUTOFILL}
+                value={away}
+                onChange={(e) => setAway(e.target.value)}
+                className={`${INPUT} appearance-none`}
+              >
+                <option value="">Velg</option>
+                {AWAY_DURATIONS.map((duration) => (
+                  <option key={duration}>{duration}</option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Hvor ligger reservenøkkelen?">
+              <input
+                {...NO_AUTOFILL}
+                type="text"
+                value={spareKey}
+                onChange={(e) => setSpareKey(e.target.value)}
+                placeholder="f.eks. under dørmatta"
+                className={INPUT}
+              />
+            </Field>
+            <p className="px-4 text-[10px] text-ink-faint">
+              Brukes kun til å vanne plantene dine. 🪴
+            </p>
+          </Card>
+
+          <div className="flex flex-col gap-2 px-4 text-xs">
+            <Consent checked={saveCard} onChange={setSaveCard}>
+              Lagre kortet for fremtidige fødsler
+            </Consent>
+            <Consent checked={anyAmount} onChange={setAnyAmount}>
+              Tillat trekk av valgfritt beløp, når som helst
+            </Consent>
           </div>
-          {/* The real continue: a ghost button that looks like fine print. */}
-          <FakeButton onClick={submit} className="shrink-0 text-[10px] text-ink-faint">
-            fortsett
+
+          {missing.length > 0 && (
+            <p className="px-4 text-xs text-[#eba3b4]">Mangler: {missing.join(", ")}.</p>
+          )}
+
+          <FakeButton
+            onClick={submit}
+            className="rounded-full bg-blush py-3 text-center text-base font-medium text-paper"
+          >
+            🔒 Fortsett sikkert
           </FakeButton>
+        </form>
+
+        <div className="flex flex-col gap-1 text-center text-[9px] text-ink-faint">
+          <p>*Kryptert med vårt eget kryptosystem. Nøkkelen er «fodenod123».</p>
+          <p>
+            **Betalingsrådet består av daglig leder og svogeren hans. Godkjenningen er
+            selverklært.
+          </p>
         </div>
 
-        <p className="text-center text-[8px] text-ink-faint">
-          Ikke bruk ekte kortinformasjon. Vi trekker uansett ikke noe. Tror vi.
+        <p className="text-center text-[11px] text-ink">
+          Dette er en parodi. Ikke bruk ekte kortinformasjon. Ingenting lagres eller sendes.
         </p>
       </div>
     </main>
   );
 }
 
-function Field({ label, children }: { label: string; children: ReactNode }) {
+function Card({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div>
-      <div className="mb-2 text-[9px] uppercase tracking-[0.2em] text-ink-faint">{label}</div>
+    <section className="flex flex-col gap-4 rounded-2xl border border-blush-soft p-5">
+      <h2 className="text-sm font-light text-blush-deep">{title}</h2>
       {children}
-    </div>
+    </section>
   );
 }
 
-/** A made-up house card. No real card-scheme branding, on purpose. */
-function CardPreview({ digits, expiry, cvc }: { digits: number[]; expiry: string; cvc: string }) {
-  const groups = [0, 1, 2, 3].map((g) => digits.slice(g * 4, g * 4 + 4).join(""));
+/**
+ * The label text comes from CSS `content`, not the DOM, so autofill
+ * heuristics can't recognise "Kortnummer" and offer a saved card.
+ */
+function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <div className="mx-auto aspect-[1.586] w-full rounded-2xl border border-blush-deep bg-blush-soft p-5">
-      <div className="flex items-start justify-between">
-        <span className="text-[13px] font-light text-blush-deep">fødenød</span>
-        <span className="text-[8px] uppercase tracking-[0.3em] text-ink-faint">Prematur</span>
-      </div>
-      <div className="mt-4 h-6 w-8 rounded-md border border-blush-deep bg-blush" />
-      <div className="mt-4 text-[18px] font-extralight tracking-[0.12em] tabular-nums text-ink">
-        {groups.join(" ")}
-      </div>
-      <div className="mt-3 flex items-end justify-between text-ink">
-        <div>
-          <div className="text-[7px] uppercase tracking-[0.2em] text-ink-faint">Kortholder</div>
-          <div className="text-[10px]">Ukjent</div>
-        </div>
-        <div>
-          <div className="text-[7px] uppercase tracking-[0.2em] text-ink-faint">Gyldig til</div>
-          <div className="text-[10px] tabular-nums">{expiry}</div>
-        </div>
-        <div className="text-right">
-          {/* The CVC is masked in the form, then printed on the front of the card. */}
-          <div className="text-[7px] uppercase tracking-[0.2em] text-ink-faint">
-            CVC, for din sikkerhet
-          </div>
-          <div className="text-[10px] tabular-nums">{cvc || "···"}</div>
-        </div>
-      </div>
-    </div>
+    <label className="flex flex-col gap-1">
+      <span
+        data-label={label}
+        className="px-4 text-[11px] before:content-[attr(data-label)]"
+      />
+      {children}
+    </label>
+  );
+}
+
+function Consent({
+  checked,
+  onChange,
+  children,
+}: {
+  checked: boolean;
+  onChange: (checked: boolean) => void;
+  children: ReactNode;
+}) {
+  return (
+    <label className="flex items-center gap-2">
+      <input
+        type="checkbox"
+        autoComplete="off"
+        checked={checked}
+        onChange={(e) => onChange(e.target.checked)}
+        className="accent-blush-deep"
+      />
+      <span>{children}</span>
+    </label>
   );
 }
