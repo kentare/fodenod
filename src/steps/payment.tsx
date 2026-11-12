@@ -102,16 +102,6 @@ export function PaymentStep({ next }: StepProps) {
           <h1 className="text-3xl font-extralight tracking-tight text-blush-deep">
             Betalingsinformasjon
           </h1>
-          <p className="mt-2 text-xs font-light">
-            Vi trenger bare kortet ditt før vi vet om du trenger oss.
-          </p>
-          <div className="mt-3 flex flex-wrap justify-center gap-2 text-[12px]">
-            <span className="rounded-full bg-blush-soft px-3 py-1">🔒 100 % sikker ✓</span>
-            <span className="rounded-full bg-blush-soft px-3 py-1">🔒 Kryptert*</span>
-            <span className="rounded-full bg-blush-soft px-3 py-1">
-              🔒 Godkjent av Betalingsrådet**
-            </span>
-          </div>
         </header>
 
         <form
@@ -245,14 +235,6 @@ export function PaymentStep({ next }: StepProps) {
             🔒 Fortsett sikkert
           </FakeButton>
         </form>
-
-        <div className="flex flex-col gap-1 text-center text-[10px] text-ink-faint">
-          <p>*Kryptert med vårt eget kryptosystem. Nøkkelen er «fodenod123».</p>
-          <p>
-            **Betalingsrådet består av daglig leder og svogeren hans. Godkjenningen er
-            selverklært.
-          </p>
-        </div>
 
         <p className="text-center text-[13px] text-ink">
           Dette er en parodi. Ikke bruk ekte kortinformasjon. Ingenting lagres eller sendes.
