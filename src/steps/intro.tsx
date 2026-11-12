@@ -2,6 +2,7 @@
 
 import type { StepProps } from "@/app/steps";
 import { FakeButton } from "@/components/fake-button";
+import { Logo } from "@/components/logo";
 
 const HOW_IT_WORKS = [
   "Registrer deg og bekreft graviditeten.",
@@ -17,6 +18,8 @@ export function IntroStep({ next }: StepProps) {
       className="flex min-h-screen flex-1 flex-col items-center justify-center px-6 py-16 text-ink"
     >
       <div className="flex w-[min(440px,100%)] flex-col items-center gap-8 text-center">
+        <Logo size={128} />
+
         <div className="flex flex-col gap-3">
           <h1 className="text-4xl font-extralight tracking-tight text-blush-deep">
             Transport til fødeavdelingen

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { StepProps } from "@/app/steps";
+import { Logo } from "@/components/logo";
 import { rand } from "@/lib/random";
 
 const MIN_DURATION_MS = 5000;
@@ -94,9 +95,12 @@ export function FlashLoader({ onComplete }: { onComplete: () => void }) {
     >
       <div className="h-6 w-6 animate-spin rounded-full border border-blush-soft border-t-blush-deep" />
 
-      <h1 className="text-5xl font-extralight tracking-tight text-blush-deep">
-        fødenød
-      </h1>
+      <div className="flex flex-col items-center gap-4">
+        <Logo size={152} />
+        <h1 className="text-5xl font-extralight tracking-tight text-blush-deep">
+          fødenød
+        </h1>
+      </div>
 
       <div className="flex w-[min(480px,80vw)] flex-col items-end gap-2">
         {/* No width transition: every stall, leap and slip must be visible. */}

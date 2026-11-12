@@ -3,6 +3,7 @@
 import { type ComponentType, useCallback, useState } from "react";
 import { DevPanel } from "@/components/dev-panel";
 import { LoadingStep } from "@/components/flash-loader";
+import { CornerLogo } from "@/components/logo";
 import { ShortcutsBox } from "@/components/shortcuts-box";
 import { Snow } from "@/components/snow";
 import { StepIndicator } from "@/components/step-indicator";
@@ -64,6 +65,7 @@ export default function Home() {
         data={data}
         setData={setData}
       />
+      <CornerLogo current={step} />
       <StepIndicator current={step} />
       <ShortcutsBox current={step} />
       <Snow />
