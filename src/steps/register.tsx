@@ -41,10 +41,12 @@ const BAD = "border-[#f397b8]";
 
 const PASTE_PLEASE =
   "Alfakrøll oppdaget. Alfakrøll er ikke tillatt å skrive. Vennligst lim inn en alfakrøll.";
-const DICTATE_PLEASE = "Alfakrøll må dikteres. Si «alfakrøll» nå.";
-const NOT_AN_AT = "Beklager, det hørtes ikke ut som en alfakrøll.";
-/** "alfakrøll" said out loud: also "alfa krøll", "alfa-krøll", or with a missed ø. */
-const SPOKEN_AT = /alfa[\s-]*kr[øo]ll/i;
+const HEARD_NOTHING = "Beklager, vi hørte ingenting.";
+/**
+ * "alfakrøll" as a recognizer might write it: "alfa krøll", "Alfa-krøl",
+ * "alpha kroll", "alfagrøll"…
+ */
+const SPOKEN_AT = /(?:alfa|alpha)[\s-]*(?:kr|gr)[øoöe]l+/gi;
 /** Recognition errors meaning the mic will never work, so pasting is allowed. */
 const MIC_BLOCKED = new Set(["not-allowed", "service-not-allowed", "audio-capture"]);
 /** Chrome sometimes never fires `end` on an utterance; don't wait forever. */
@@ -73,13 +75,27 @@ function recognitionConstructor(): RecognitionConstructor | undefined {
   return w.SpeechRecognition ?? w.webkitSpeechRecognition;
 }
 
-function heardAnAt(results: SpeechRecognitionResultList) {
-  for (const result of Array.from(results)) {
-    for (const alternative of Array.from(result)) {
-      if (SPOKEN_AT.test(alternative.transcript)) return true;
-    }
-  }
-  return false;
+/** Prefers an alternative that contains a spoken "alfakrøll". */
+function bestTranscript(result: SpeechRecognitionResult) {
+  const alternatives = Array.from(result, (a) => a.transcript);
+  return alternatives.find((t) => t.search(SPOKEN_AT) !== -1) ?? alternatives[0] ?? "";
+}
+
+/** All results so far (final and interim), in order. */
+function transcriptOf(results: SpeechRecognitionResultList) {
+  return Array.from(results, bestTranscript).join(" ").trim();
+}
+
+/**
+ * Turns dictation into email-ish text: "alfakrøll" → "@", "punktum" → ".",
+ * no spaces, lowercase. "kari alfakrøll example punktum no" → "kari@example.no".
+ */
+export function dictationToText(transcript: string) {
+  return transcript
+    .replace(SPOKEN_AT, "@")
+    .replace(/\s*\b(?:punktum|dot)\b\s*/gi, ".")
+    .replace(/\s+/g, "")
+    .toLowerCase();
 }
 
 const ID_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -141,6 +157,8 @@ export function RegisterStep({ next, setData }: StepProps) {
   const [invalid, setInvalid] = useState<ReadonlySet<Field>>(new Set());
   const [failed, setFailed] = useState(false);
   const [listening, setListening] = useState(false);
+  /** What the recognizer has heard so far, shown live in the overlay. */
+  const [heard, setHeard] = useState("");
   const emailRef = useRef<HTMLInputElement>(null);
   /** Stops the current dictation; set by the effect below while listening. */
   const stopRef = useRef<(() => void) | null>(null);
@@ -170,14 +188,15 @@ export function RegisterStep({ next, setData }: StepProps) {
     /** Set once recognition reports the mic can't be used; unlocks pasting. */
     let micBlocked = false;
 
-    const insertAt = () => {
+    /** Inserts dictated text at the caret (replacing any selection). */
+    const insertAtCaret = (text: string) => {
       const start = email.selectionStart ?? email.value.length;
       const end = email.selectionEnd ?? start;
       const value = email.value;
-      caretRef.current = start + 1;
+      caretRef.current = start + text.length;
       setValues((v) => ({
         ...v,
-        email: `${value.slice(0, start)}@${value.slice(end)}`,
+        email: `${value.slice(0, start)}${text}${value.slice(end)}`,
       }));
     };
 
@@ -185,10 +204,12 @@ export function RegisterStep({ next, setData }: StepProps) {
       if (disposed) return;
       const session = new Recognition();
       session.lang = "nb-NO";
-      session.interimResults = false;
+      // Keep listening (through pauses) until the user presses Stopp, and
+      // show what's being heard as it comes in.
+      session.interimResults = true;
       session.maxAlternatives = 5;
-      session.continuous = false;
-      let heard = false;
+      session.continuous = true;
+      let transcript = "";
       let stoppedByUser = false;
       stopRef.current = () => {
         stoppedByUser = true;
@@ -199,9 +220,8 @@ export function RegisterStep({ next, setData }: StepProps) {
         if (MIC_BLOCKED.has(event.error)) micBlocked = true;
       };
       session.onresult = (event) => {
-        if (heard || !heardAnAt(event.results)) return;
-        heard = true;
-        insertAt();
+        transcript = transcriptOf(event.results);
+        setHeard(transcript);
       };
       // Errors (no mic, no speech, denied) are always followed by `end`.
       session.onend = () => {
@@ -209,9 +229,13 @@ export function RegisterStep({ next, setData }: StepProps) {
         stopRef.current = null;
         busy = false;
         setListening(false);
-        if (!heard && !stoppedByUser && !disposed) speak(NOT_AN_AT);
+        if (disposed) return;
+        const text = dictationToText(transcript);
+        if (text) insertAtCaret(text);
+        else if (!stoppedByUser) speak(HEARD_NOTHING);
       };
       recognition = session;
+      setHeard("");
       setListening(true);
       try {
         session.start();
@@ -220,12 +244,13 @@ export function RegisterStep({ next, setData }: StepProps) {
       }
     };
 
-    /** Prompts for "alfakrøll" and starts listening. */
+    /** Starts speech-to-text straight away (the overlay explains it). */
     const dictate = (Recognition: RecognitionConstructor) => {
       // One dictation at a time; extra "@"s are simply swallowed.
       if (busy) return;
       busy = true;
-      speak(DICTATE_PLEASE, () => listen(Recognition));
+      window.speechSynthesis?.cancel();
+      listen(Recognition);
     };
 
     const onBeforeInput = (e: InputEvent) => {
@@ -373,7 +398,8 @@ export function RegisterStep({ next, setData }: StepProps) {
           <div className="flex size-48 animate-pulse items-center justify-center rounded-full bg-blush-soft text-[96px] leading-none">
             🎙️
           </div>
-          <p className="text-lg font-light text-blush-deep">Si «alfakrøll»</p>
+          <p className="text-lg font-light text-blush-deep">Tale-til-tekst har startet</p>
+          <p className="h-5 max-w-[80vw] truncate text-sm text-ink">{heard}</p>
           <FakeButton
             onClick={() => stopRef.current?.()}
             className="rounded-full border border-blush-deep px-8 py-2 text-sm text-blush-deep"
