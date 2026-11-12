@@ -16,7 +16,7 @@ const PHONE_MIN_VALID = 10_000_000;
  * faintest hint of red, so colour is the only (barely visible) signal (WCAG 1.4.1).
  */
 const OK = "border-blush";
-const BAD = "border-[#f6bccb]";
+const BAD = "border-[#f397b8]";
 
 /** Each digit picker gets its own order, so muscle memory never helps. */
 function shuffledDigitOrders() {
@@ -147,7 +147,7 @@ export function RegisterStep({ next, setData }: StepProps) {
         </div>
 
         {/* WCAG 3.3.1: an unhelpful error, below the fold of your attention. */}
-        <p className="h-4 text-center text-[10px] text-[#f3b9c6]">
+        <p className="h-4 text-center text-[10px] text-[#ea8cad]">
           {failed && "Noe gikk galt. (feil 0x1F4A9)"}
         </p>
       </div>

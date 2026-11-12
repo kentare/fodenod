@@ -20,9 +20,9 @@ const POWDER_SHARE = 0.5;
 const MAX_STEP = 5;
 /** How quickly the surface smooths out, per frame at 60fps. */
 const SMOOTHING = 0.05;
-const WIPE_RADIUS = 46;
+const WIPE_RADIUS = 100;
 /** Px of snow removed at the cursor centre per px of cursor travel. */
-const WIPE_STRENGTH = 0.6;
+const WIPE_STRENGTH = 1.5;
 const MAX_SPRAY = 90;
 
 /** Dispatch this on `window` to clear all snow (used by the dev panel). */
@@ -50,9 +50,9 @@ function readPalette() {
   const token = (name: string, fallback: string) =>
     css.getPropertyValue(name).trim() || fallback;
   return {
-    blush: token("--color-blush", "#f8c8dc"),
-    blushSoft: token("--color-blush-soft", "#fdeef4"),
-    blushDeep: token("--color-blush-deep", "#e9a6c2"),
+    blush: token("--color-blush", "#f4a6c6"),
+    blushSoft: token("--color-blush-soft", "#fbdce9"),
+    blushDeep: token("--color-blush-deep", "#e27aa6"),
   };
 }
 

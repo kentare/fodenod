@@ -192,7 +192,7 @@ export function VerifyStep({ next }: StepProps) {
 
         <div className="mt-2 h-4 text-[10px]">
           {verdict === "wrong" && (
-            <span className="text-[#f3b9c6]">Feil. Prøv igjen.</span>
+            <span className="text-[#ea8cad]">Feil. Prøv igjen.</span>
           )}
           {verdict === "mercy" && <span>Greit nok. 🙄</span>}
           {verdict === "speech" && (

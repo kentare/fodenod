@@ -253,7 +253,7 @@ export function PaymentStep({ next }: StepProps) {
           </div>
 
           {missing.length > 0 && (
-            <p className="px-4 text-xs text-[#eba3b4]">Mangler: {missing.join(", ")}.</p>
+            <p className="px-4 text-xs text-[#e888a6]">Mangler: {missing.join(", ")}.</p>
           )}
 
           <FakeButton

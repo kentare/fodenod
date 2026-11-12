@@ -2,7 +2,7 @@
 
 :root {
   --background: #ffffff;
-  --foreground: #d48aaa;
+  --foreground: #c45f8b;
 }
 
 @theme inline {
@@ -13,11 +13,11 @@
 
   /* fødenød palette: white + baby pink. Use these, not ad-hoc hex values. */
   --color-paper: #ffffff; /* page background */
-  --color-blush: #f8c8dc; /* baby pink: primary fills, the "main" button */
-  --color-blush-soft: #fdeef4; /* subtle surfaces, cards, inputs */
-  --color-blush-deep: #e9a6c2; /* borders, headings, accents */
-  --color-ink: #d48aaa; /* body text, ~2.5:1 on white (fails AA on purpose) */
-  --color-ink-faint: #f2c6d8; /* fine print, ~1.4:1 (practically invisible) */
+  --color-blush: #f4a6c6; /* baby pink: primary fills, the "main" button */
+  --color-blush-soft: #fbdce9; /* subtle surfaces, cards, inputs */
+  --color-blush-deep: #e27aa6; /* borders, headings, accents */
+  --color-ink: #c45f8b; /* body text, ~3.9:1 on white (fails AA on purpose) */
+  --color-ink-faint: #eba9c4; /* fine print, ~1.9:1 (barely visible) */
 }
 
 body {
