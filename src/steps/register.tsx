@@ -43,10 +43,11 @@ const PASTE_PLEASE =
   "Alfakrøll oppdaget. Alfakrøll er ikke tillatt å skrive. Vennligst lim inn en alfakrøll.";
 const HEARD_NOTHING = "Beklager, vi hørte ingenting.";
 /**
- * "alfakrøll" as a recognizer might write it: "alfa krøll", "Alfa-krøl",
- * "alpha kroll", "alfagrøll"…
+ * A spoken "@": just "alpha"/"alfa" is enough, and "alfakrøll" as a recognizer
+ * might write it ("alfa krøll", "Alfa-krøl", "alpha kroll", "alfagrøll") works
+ * too. A bare "alfa" must be a whole word, so "alfabet" stays text.
  */
-const SPOKEN_AT = /(?:alfa|alpha)[\s-]*(?:kr|gr)[øoöe]l+/gi;
+const SPOKEN_AT = /\b(?:alfa|alpha)(?:[\s-]*(?:kr|gr)[øoöe]l+|\b)/gi;
 /** Recognition errors meaning the mic will never work, so pasting is allowed. */
 const MIC_BLOCKED = new Set(["not-allowed", "service-not-allowed", "audio-capture"]);
 /** Chrome sometimes never fires `end` on an utterance; don't wait forever. */
