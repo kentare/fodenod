@@ -70,7 +70,7 @@ export function PregnantStep({ next }: StepProps) {
   return (
     <main
       aria-hidden
-      className="relative flex min-h-screen flex-col items-center justify-center gap-6 overflow-hidden bg-paper p-8 font-sans"
+      className="relative flex min-h-screen flex-col items-center justify-center gap-6 overflow-hidden p-8 font-sans"
     >
       <h1 className="text-5xl font-extralight tracking-tight text-blush-deep">
         Er du den gravide?

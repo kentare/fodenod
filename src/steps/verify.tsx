@@ -122,7 +122,7 @@ export function VerifyStep({ next }: StepProps) {
   };
 
   return (
-    <main className="flex min-h-screen flex-1 items-center justify-center bg-paper p-6 text-ink">
+    <main className="flex min-h-screen flex-1 items-center justify-center p-6 text-ink">
       <div className="relative w-[326px] rounded-2xl border border-blush-soft bg-paper px-5 pt-6 pb-4">
         {/* WCAG 2.5.3 + 4.1.2: an unlabeled "close" icon that just gives you new pictures. */}
         <FakeButton

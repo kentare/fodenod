@@ -73,7 +73,7 @@ export function RegisterStep({ next, setData }: StepProps) {
   return (
     <main
       aria-hidden
-      className="flex min-h-screen flex-1 flex-col items-center justify-center bg-paper p-6 text-ink"
+      className="flex min-h-screen flex-1 flex-col items-center justify-center p-6 text-ink"
     >
       <div className="flex w-[min(340px,92vw)] flex-col gap-5">
         <header className="mb-6 flex flex-col items-center gap-1">

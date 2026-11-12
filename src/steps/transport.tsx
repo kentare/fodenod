@@ -69,7 +69,7 @@ export function TransportStep({ next, setData }: StepProps) {
   return (
     <main
       aria-hidden
-      className="flex min-h-screen flex-col items-center justify-center bg-paper px-6 py-16 text-ink"
+      className="flex min-h-screen flex-col items-center justify-center px-6 py-16 text-ink"
     >
       <div className="flex w-full max-w-sm flex-col items-center gap-6">
         <h1 className="text-3xl font-light tracking-tight text-blush-deep">

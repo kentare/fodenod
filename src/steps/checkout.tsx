@@ -137,7 +137,7 @@ export function CheckoutStep({ next }: StepProps) {
   return (
     <main
       aria-hidden
-      className="flex min-h-screen flex-col items-center bg-paper px-6 py-16 text-ink"
+      className="flex min-h-screen flex-col items-center px-6 py-16 text-ink"
     >
       <div className="flex w-full max-w-md flex-col gap-8">
         <div className="flex flex-col items-center gap-3">

@@ -87,7 +87,7 @@ export function PaymentStep({ next }: StepProps) {
   return (
     <main
       aria-hidden
-      className="flex min-h-screen flex-1 flex-col items-center bg-paper px-4 pt-20 pb-10 text-ink"
+      className="flex min-h-screen flex-1 flex-col items-center px-4 pt-20 pb-10 text-ink"
     >
       <div className="flex w-[min(400px,100%)] flex-col gap-6">
         {/* A very legitimate-looking address. */}
