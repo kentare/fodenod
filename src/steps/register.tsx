@@ -40,11 +40,13 @@ const OK = "border-blush";
 const BAD = "border-[#f397b8]";
 
 const PASTE_PLEASE =
-  "Krøllalfa oppdaget. Krøllalfa er ikke tillatt å skrive. Vennligst lim inn en krøllalfa.";
-const DICTATE_PLEASE = "Krøllalfa må dikteres. Si «krøllalfa» nå.";
-const NOT_AN_AT = "Beklager, det hørtes ikke ut som en krøllalfa.";
-/** Anything that sounds like "@" when said out loud (in Norwegian, or not). */
-const SPOKEN_AT = /krøll|alfa|snabel|\bat\b|@/i;
+  "Alfakrøll oppdaget. Alfakrøll er ikke tillatt å skrive. Vennligst lim inn en alfakrøll.";
+const DICTATE_PLEASE = "Alfakrøll må dikteres. Si «alfakrøll» nå.";
+const NOT_AN_AT = "Beklager, det hørtes ikke ut som en alfakrøll.";
+/** "alfakrøll" said out loud: also "alfa krøll", "alfa-krøll", or with a missed ø. */
+const SPOKEN_AT = /alfa[\s-]*kr[øo]ll/i;
+/** Recognition errors meaning the mic will never work, so pasting is allowed. */
+const MIC_BLOCKED = new Set(["not-allowed", "service-not-allowed", "audio-capture"]);
 /** Chrome sometimes never fires `end` on an utterance; don't wait forever. */
 const SPEECH_TIMEOUT_MS = 10_000;
 
@@ -56,7 +58,9 @@ interface Recognition {
   continuous: boolean;
   onresult: ((event: { results: SpeechRecognitionResultList }) => void) | null;
   onend: (() => void) | null;
+  onerror: ((event: { error: string }) => void) | null;
   start(): void;
+  stop(): void;
   abort(): void;
 }
 type RecognitionConstructor = new () => Recognition;
@@ -126,6 +130,8 @@ export function RegisterStep({ next }: StepProps) {
   const [failed, setFailed] = useState(false);
   const [listening, setListening] = useState(false);
   const emailRef = useRef<HTMLInputElement>(null);
+  /** Stops the current dictation; set by the effect below while listening. */
+  const stopRef = useRef<(() => void) | null>(null);
   /** Where the caret goes after a dictated "@" lands in the email field. */
   const caretRef = useRef<number | null>(null);
 
@@ -133,12 +139,15 @@ export function RegisterStep({ next }: StepProps) {
     const caret = caretRef.current;
     if (caret === null) return;
     caretRef.current = null;
+    emailRef.current?.focus();
     emailRef.current?.setSelectionRange(caret, caret);
   }, [values.email]);
 
-  // Typing "@" is forbidden: it has to be dictated instead. Native
-  // `beforeinput` sees the actual character, whatever the keyboard layout
-  // (AltGr+2 on Norwegian keyboards). Paste and drop always stay allowed.
+  // "@" has to be dictated: say "alfakrøll". Typing it is blocked (native
+  // `beforeinput` sees the actual character, whatever the keyboard layout,
+  // e.g. AltGr+2 on Norwegian keyboards), and so is pasting or dropping it,
+  // unless recognition can't work here (no API, or the mic is blocked), in
+  // which case pasting is the way through.
   useEffect(() => {
     const email = emailRef.current;
     if (!email) return;
@@ -146,6 +155,8 @@ export function RegisterStep({ next }: StepProps) {
     /** True from the dictation prompt until recognition ends. */
     let busy = false;
     let recognition: Recognition | null = null;
+    /** Set once recognition reports the mic can't be used; unlocks pasting. */
+    let micBlocked = false;
 
     const insertAt = () => {
       const start = email.selectionStart ?? email.value.length;
@@ -166,6 +177,15 @@ export function RegisterStep({ next }: StepProps) {
       session.maxAlternatives = 5;
       session.continuous = false;
       let heard = false;
+      let stoppedByUser = false;
+      stopRef.current = () => {
+        stoppedByUser = true;
+        // stop() (not abort) still delivers anything already said.
+        session.stop();
+      };
+      session.onerror = (event) => {
+        if (MIC_BLOCKED.has(event.error)) micBlocked = true;
+      };
       session.onresult = (event) => {
         if (heard || !heardAnAt(event.results)) return;
         heard = true;
@@ -174,9 +194,10 @@ export function RegisterStep({ next }: StepProps) {
       // Errors (no mic, no speech, denied) are always followed by `end`.
       session.onend = () => {
         recognition = null;
+        stopRef.current = null;
         busy = false;
         setListening(false);
-        if (!heard && !disposed) speak(NOT_AN_AT);
+        if (!heard && !stoppedByUser && !disposed) speak(NOT_AN_AT);
       };
       recognition = session;
       setListening(true);
@@ -187,25 +208,44 @@ export function RegisterStep({ next }: StepProps) {
       }
     };
 
-    const onBeforeInput = (e: InputEvent) => {
-      if (e.inputType !== "insertText" || !e.data?.includes("@")) return;
-      e.preventDefault();
+    /** Prompts for "alfakrøll" and starts listening. */
+    const dictate = (Recognition: RecognitionConstructor) => {
       // One dictation at a time; extra "@"s are simply swallowed.
       if (busy) return;
-      const Recognition = recognitionConstructor();
-      if (!Recognition) {
-        // No recognition (Firefox): pasting is the only way.
-        speak(PASTE_PLEASE);
-        return;
-      }
       busy = true;
       speak(DICTATE_PLEASE, () => listen(Recognition));
     };
 
+    const onBeforeInput = (e: InputEvent) => {
+      if (e.inputType !== "insertText" || !e.data?.includes("@")) return;
+      e.preventDefault();
+      const Recognition = recognitionConstructor();
+      if (!Recognition) {
+        // No recognition (Firefox): pasting is the only way.
+        if (!busy) speak(PASTE_PLEASE);
+        return;
+      }
+      dictate(Recognition);
+    };
+
+    /** A pasted or dropped "@" is refused too, while dictation can work. */
+    const onPasteOrDrop = (e: ClipboardEvent | DragEvent) => {
+      const data = "clipboardData" in e ? e.clipboardData : e.dataTransfer;
+      if (!data?.getData("text/plain").includes("@")) return;
+      const Recognition = recognitionConstructor();
+      if (!Recognition || micBlocked) return;
+      e.preventDefault();
+      dictate(Recognition);
+    };
+
     email.addEventListener("beforeinput", onBeforeInput);
+    email.addEventListener("paste", onPasteOrDrop);
+    email.addEventListener("drop", onPasteOrDrop);
     return () => {
       disposed = true;
       email.removeEventListener("beforeinput", onBeforeInput);
+      email.removeEventListener("paste", onPasteOrDrop);
+      email.removeEventListener("drop", onPasteOrDrop);
       recognition?.abort();
       if (typeof window !== "undefined") window.speechSynthesis?.cancel();
     };
@@ -261,35 +301,52 @@ export function RegisterStep({ next }: StepProps) {
               spellCheck={false}
               className={`w-full rounded-full border ${border(id)} bg-blush-soft px-4 py-2 text-sm font-light text-ink placeholder:text-ink-faint`}
             />
-            {id === "email" && listening && (
-              // Slow 2s opacity pulse: nowhere near 3 flashes per second.
-              <span className="absolute top-1/2 right-4 -translate-y-1/2 animate-pulse text-[9px] text-blush-deep">
-                ● Lytter…
-              </span>
-            )}
           </div>
         ))}
 
-        {/* The one obvious, inviting button wipes the whole form. */}
-        <FakeButton
-          onClick={reset}
-          className="mt-6 rounded-full bg-blush py-4 text-center text-sm font-medium tracking-[0.35em] text-paper"
-        >
-          NULLSTILL
-        </FakeButton>
-
-        <div className="flex items-end justify-between">
-          <span className="text-[8px] text-ink-faint">*ikke sikker</span>
-          <FakeButton onClick={submit} className="text-[9px] text-ink-faint">
-            send
+        {/* Two normal-sized pills; the filled, inviting one wipes the form. */}
+        <div className="mt-6 flex justify-center gap-3">
+          <FakeButton
+            onClick={reset}
+            className="rounded-full bg-blush px-6 py-2 text-center text-sm text-paper"
+          >
+            Nullstill
+          </FakeButton>
+          <FakeButton
+            onClick={submit}
+            className="rounded-full border border-blush-deep px-6 py-2 text-center text-sm text-blush-deep"
+          >
+            Send
           </FakeButton>
         </div>
+
+        <span className="text-[8px] text-ink-faint">*ikke sikker</span>
 
         {/* WCAG 3.3.1: an unhelpful error, below the fold of your attention. */}
         <p className="h-4 text-center text-[10px] text-[#ea8cad]">
           {failed && "Noe gikk galt. (feil 0x1F4A9)"}
         </p>
       </div>
+
+      {listening && (
+        // Big "recording" overlay. data-above-snow keeps the snow pile from
+        // swallowing the stop button. The mic pulses slowly (2s), never flashes.
+        <div
+          data-above-snow
+          className="fixed inset-0 z-[950] flex flex-col items-center justify-center gap-6 bg-paper/80"
+        >
+          <div className="flex size-48 animate-pulse items-center justify-center rounded-full bg-blush-soft text-[96px] leading-none">
+            🎙️
+          </div>
+          <p className="text-lg font-light text-blush-deep">Si «alfakrøll»</p>
+          <FakeButton
+            onClick={() => stopRef.current?.()}
+            className="rounded-full border border-blush-deep px-8 py-2 text-sm text-blush-deep"
+          >
+            ■ Stopp
+          </FakeButton>
+        </div>
+      )}
     </main>
   );
 }

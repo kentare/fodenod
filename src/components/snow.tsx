@@ -80,7 +80,7 @@ function fillRate(fill: number) {
 /**
  * Constant snowfall over the whole app. The snow piles up from the bottom,
  * swallows every click that lands on it, and has to be wiped away by
- * dragging the mouse over it. The dev panel (`[data-dev-panel]`) is exempt.
+ * dragging the mouse over it. The dev panel (`[data-dev-panel]`) and overlays marked `[data-above-snow]` are exempt.
  *
  * Two layers: falling flakes are painted behind the page content (so forms
  * and text cover them), while the pile is painted on top of everything.
@@ -220,7 +220,7 @@ export function Snow() {
     const surfaceAt = (x: number) => height - heights[colAt(x)];
     const isOnSnow = (e: MouseEvent) =>
       e.clientY > surfaceAt(e.clientX) &&
-      !(e.target instanceof Element && e.target.closest("[data-dev-panel]"));
+      !(e.target instanceof Element && e.target.closest("[data-dev-panel], [data-above-snow]"));
     const swallow = (e: Event) => {
       e.preventDefault();
       e.stopPropagation();
