@@ -1,7 +1,10 @@
 import type { StepId } from "@/app/steps";
 
 /** Keyboard shortcuts, as a floating card in the top-right corner. */
-const SHORTCUTS = [{ keys: "@", action: "starter tale-til-tekst" }] as const;
+const SHORTCUTS = [
+  { keys: "@", action: "starter tale-til-tekst" },
+  { keys: "7", action: "ambulanse" },
+] as const;
 
 export function ShortcutsBox({ current }: { current: StepId }) {
   if (current === "loading" || current === "intro") return null;
