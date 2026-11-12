@@ -42,7 +42,7 @@ function TinyBox({ checked, onToggle }: { checked: boolean; onToggle: () => void
   return (
     <div
       onClick={onToggle}
-      className="mt-[1px] flex h-[9px] w-[9px] shrink-0 items-center justify-center border border-[#aaa] bg-[#ddd] text-[8px] leading-none text-[#999]"
+      className="mt-[1px] flex h-[9px] w-[9px] shrink-0 items-center justify-center rounded-[2px] border border-blush bg-paper text-[8px] leading-none text-ink"
     >
       {checked ? "✗" : ""}
     </div>
@@ -57,20 +57,22 @@ export function TermsStep({ next, restart }: StepProps) {
   return (
     <main
       aria-hidden
-      className="flex min-h-screen flex-col items-center bg-[#f3efe2] px-4 py-10 [font-family:Times_New_Roman,Times,serif] text-[#8a8577]"
+      className="flex min-h-screen flex-col items-center bg-paper px-4 py-16 font-sans text-ink"
     >
-      <div className="flex w-[min(380px,100%)] flex-col gap-3">
-        <p className="text-center text-[8px] uppercase tracking-[0.3em] text-[#c9c3b2]">
+      <div className="flex w-[min(380px,100%)] flex-col gap-4">
+        <p className="text-center text-[8px] uppercase tracking-[0.3em] text-ink-faint">
           Fødenød AS · Standardvilkår for akutt befordring · rev. 47.3b
         </p>
-        <div className="border-y-[3px] border-double border-[#d8d2c0] py-2 text-center">
-          <h1 className="text-2xl italic tracking-tight text-[#b3ad9c]">Vilkår og betingelser</h1>
-          <p className="text-[9px] text-[#c9c3b2]">
+        <div className="flex flex-col gap-1 text-center">
+          <h1 className="text-4xl font-extralight tracking-tight text-blush-deep">
+            Vilkår og betingelser
+          </h1>
+          <p className="text-[9px] text-ink-faint">
             Gjeldende fra i går. Estimert lesetid: 4 t 12 min.
           </p>
         </div>
 
-        <div className="h-[160px] overflow-y-scroll border border-[#ccc] bg-[#d6d6d6] p-2 text-justify text-[9px] leading-[1.15] text-[#b4b4b4] [scrollbar-color:#cacaca_#d6d6d6] [scrollbar-width:thin]">
+        <div className="mt-4 h-[160px] overflow-y-scroll rounded-2xl border border-blush-soft bg-blush-soft px-3 py-2 text-justify text-[9px] leading-[1.15] text-ink-faint [scrollbar-color:var(--color-blush)_var(--color-blush-soft)] [scrollbar-width:thin]">
           {PARAGRAPHS.map((p, i) => (
             <div key={p.number}>
               <p>
@@ -94,7 +96,7 @@ export function TermsStep({ next, restart }: StepProps) {
           </div>
         </div>
 
-        <div className="flex gap-1 text-[10px] text-[#a19b8a]">
+        <div className="flex gap-1 text-[10px] text-ink">
           {/* Confirmshaming: "unchecking" just signs you up for more. */}
           <TinyBox checked onToggle={() => setNewsletters((n) => n + 1)} />
           <span>Ja takk, send meg {newsletters} nyhetsbrev daglig</span>
@@ -102,10 +104,10 @@ export function TermsStep({ next, restart }: StepProps) {
 
         <FakeButton
           onClick={restart}
-          className="mt-4 rounded-full bg-gradient-to-b from-[#5fd36b] to-[#2a9a38] py-5 text-center text-3xl font-black tracking-widest text-white shadow-[0_6px_0_#1d6e27,0_10px_20px_rgba(0,0,0,0.25)] [font-family:Impact,Arial_Black,sans-serif]"
+          className="mt-8 rounded-full bg-blush py-5 text-center text-2xl font-light tracking-[0.3em] text-paper"
         >
           AVSLÅ
-          <span className="block text-[10px] font-normal tracking-normal text-[#d9f7dc]">
+          <span className="block text-[10px] tracking-normal text-blush-soft">
             anbefalt av 9 av 10 jordmødre
           </span>
         </FakeButton>
@@ -115,7 +117,7 @@ export function TermsStep({ next, restart }: StepProps) {
           onClick={() => {
             if (accepted) next();
           }}
-          className="self-start text-[10px] text-[#cfc9b8] underline"
+          className="self-start text-[10px] text-ink-faint"
         >
           Fortsett
         </FakeButton>

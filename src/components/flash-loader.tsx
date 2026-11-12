@@ -6,7 +6,43 @@ import { rand } from "@/lib/random";
 
 const MIN_DURATION_MS = 5000;
 const MAX_DURATION_MS = 10000;
-const DOTS = 12;
+
+/** Each quip stays up just a bit shorter than it takes to read it. */
+const MIN_QUIP_MS = 1200;
+const MAX_QUIP_MS = 2500;
+const QUIP_FADE_MS = 200;
+
+const QUIPS = [
+  "Teller rier…",
+  "Varmer opp vannet…",
+  "Ringer svigermor…",
+  "Leter etter bilnøklene…",
+  "Bekrefter at du fortsatt er gravid…",
+  "Laster inn morkake…",
+  "Pumper dekk på elsparkesykkelen…",
+  "Venter på at jordmora blir ferdig med lunsjen…",
+  "Kalibrerer pusteøvelser…",
+  "Oppdaterer vilkårene (igjen)…",
+  "Komprimerer babyen…",
+  "Installerer fødselsdriver 2.0…",
+  "Måler åpning i centimeter (avrundet ned)…",
+  "Pakker sykehusbagen for deg (glemmer tannbørsten)…",
+  "Spør babyen om den kan vente litt…",
+  "Synkroniserer veer med skyen…",
+  "Forhandler parkeringsavgift med sykehuset…",
+  "Varmer opp epiduralen…",
+  "Defragmenterer navnelista…",
+  "Sjekker om pappa har besvimt…",
+  "Laster ned mer fostervann…",
+  "Venter på ledig fødestue i Vardø…",
+];
+
+function randomQuip(current: number) {
+  // Repeats are fine, just not twice in a row (it would look frozen).
+  let next = current;
+  while (next === current) next = Math.floor(Math.random() * QUIPS.length);
+  return next;
+}
 
 /**
  * Picks the next displayed progress. It loosely follows real elapsed time,
@@ -52,38 +88,57 @@ export function FlashLoader({ onComplete }: { onComplete: () => void }) {
   }, [onComplete]);
 
   return (
-    <div aria-hidden className="flash-stage fixed inset-0 z-50 flex flex-col items-center justify-center gap-8 bg-[#111] font-retro text-[#e8e8e8]">
-      <div className="relative h-20 w-20">
-        {Array.from({ length: DOTS }, (_, i) => (
-          <span
-            key={i}
-            className="flash-dot absolute left-1/2 top-0 h-3 w-3 -translate-x-1/2 rounded-full bg-[#ff6a00]"
-            style={{
-              transform: `rotate(${(360 / DOTS) * i}deg)`,
-              transformOrigin: "50% 40px",
-              animationDelay: `${(-1.2 / DOTS) * (DOTS - i)}s`,
-            }}
-          />
-        ))}
-      </div>
+    <div
+      aria-hidden
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-10 bg-paper font-sans"
+    >
+      <div className="h-6 w-6 animate-spin rounded-full border border-blush-soft border-t-blush-deep" />
 
-      <h1 className="text-2xl tracking-widest text-[#ff6a00] drop-shadow-[2px_2px_0_#5a1e00]">
+      <h1 className="text-5xl font-extralight tracking-tight text-blush-deep">
         fødenød
       </h1>
 
-      <div className="flex w-[min(320px,80vw)] flex-col gap-2">
-        <div className="h-4 border-2 border-[#e8e8e8] p-[2px]">
-          <div
-            className="h-full bg-gradient-to-r from-[#ff6a00] to-[#ffd000]"
-            style={{ width: `${progress}%` }}
-          />
+      <div className="flex w-[min(480px,80vw)] flex-col items-end gap-2">
+        {/* No width transition: every stall, leap and slip must be visible. */}
+        <div className="h-6 w-full overflow-hidden rounded-full border border-blush-deep bg-blush-soft">
+          <div className="h-full rounded-full bg-blush-deep" style={{ width: `${progress}%` }} />
         </div>
-        <div className="flex justify-between text-[7px] text-[#333]">
-          <span className="flash-blink">LOADING</span>
-          <span>{progress}%</span>
-        </div>
+        <span className="text-xs tabular-nums text-ink">{progress}%</span>
       </div>
+
+      <LoadingQuip />
     </div>
+  );
+}
+
+/** A one-liner that swaps itself out at random, just before you finish reading it. */
+function LoadingQuip() {
+  const [index, setIndex] = useState(0);
+  const [visible, setVisible] = useState(true);
+
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+
+    const swap = () => {
+      setVisible(false);
+      timer = setTimeout(() => {
+        setIndex(randomQuip);
+        setVisible(true);
+        timer = setTimeout(swap, rand(MIN_QUIP_MS, MAX_QUIP_MS));
+      }, QUIP_FADE_MS);
+    };
+
+    timer = setTimeout(swap, rand(MIN_QUIP_MS, MAX_QUIP_MS));
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <p
+      className="-mt-4 h-4 text-center text-xs text-ink transition-opacity duration-200"
+      style={{ opacity: visible ? 1 : 0 }}
+    >
+      {QUIPS[index]}
+    </p>
   );
 }
 

@@ -5,11 +5,6 @@ import type { StepProps } from "@/app/steps";
 import { FakeButton } from "@/components/fake-button";
 import { rand } from "@/lib/random";
 
-const COMIC = {
-  fontFamily:
-    '"Comic Sans MS", "Comic Sans", "Chalkboard SE", "Comic Neue", cursive',
-};
-
 /** "Nei" gives up running after this many dodges, so it can always be caught. */
 const MAX_DODGES = 5;
 const DODGE_X = 220;
@@ -75,22 +70,21 @@ export function PregnantStep({ next }: StepProps) {
   return (
     <main
       aria-hidden
-      style={COMIC}
-      className="relative flex min-h-screen flex-col items-center justify-center gap-6 overflow-hidden bg-[#ffd9e8] p-8"
+      className="relative flex min-h-screen flex-col items-center justify-center gap-6 overflow-hidden bg-paper p-8 font-sans"
     >
-      <h1 className="text-6xl font-bold text-[#ffbcd6] drop-shadow-[1px_1px_0_#ffe6f0]">
+      <h1 className="text-5xl font-extralight tracking-tight text-blush-deep">
         Er du den gravide?
       </h1>
-      <p className="-mt-4 text-[10px] text-[#f7c6d9]">
+      <p className="-mt-3 text-[10px] text-ink-faint">
         Vi må dessverre spørre. Av juridiske årsaker.
       </p>
 
       <FakeButton
         onClick={() => setBlocked(true)}
-        className="mt-6 animate-bounce rounded-[40px] border-8 border-[#0a8a2a] bg-gradient-to-b from-[#6dff8e] to-[#16c440] px-24 py-10 text-7xl font-black text-white shadow-[0_12px_0_#0a6b20]"
+        className="mt-10 animate-bounce rounded-full bg-blush px-20 py-6 text-center text-4xl font-light tracking-widest text-paper"
       >
-        JA ✔
-        <span className="block text-center text-sm font-normal text-[#d9ffe2]">
+        JA
+        <span className="block text-[10px] font-normal tracking-normal text-blush-soft">
           (anbefalt)
         </span>
       </FakeButton>
@@ -98,13 +92,13 @@ export function PregnantStep({ next }: StepProps) {
       <FakeButton
         onMouseEnter={dodge}
         onClick={next}
-        className="ml-64 text-[9px] text-[#f2b8cf] underline transition-transform duration-150 ease-out"
+        className="ml-64 text-[9px] text-ink-faint transition-transform duration-150 ease-out"
         style={{ transform: `translate(${offset.x}px, ${offset.y}px)` }}
       >
         nei
       </FakeButton>
 
-      <p className="absolute bottom-3 left-3 max-w-xs text-[8px] leading-tight text-[#f5cddc]">
+      <p className="absolute bottom-3 left-3 max-w-xs text-[8px] leading-tight text-ink-faint">
         Ved å trykke JA bekrefter du at du ikke er den gravide. Ved å trykke nei
         bekrefter du ingenting.
       </p>
@@ -133,22 +127,22 @@ function HandoverOverlay({ onDone }: { onDone: () => void }) {
   };
 
   return (
-    <div className="fixed inset-0 z-40 flex flex-col items-center justify-center gap-5 bg-[#ff9ec4]/95 p-8 text-center">
-      <div className="text-8xl">🤰➡️📱➡️🧍</div>
-      <h2 className="text-5xl font-bold text-[#ffd0e2]">
+    <div className="fixed inset-0 z-40 flex flex-col items-center justify-center gap-6 bg-paper p-8 text-center">
+      <div className="text-6xl">🤰➡️📱➡️🧍</div>
+      <h2 className="text-4xl font-extralight tracking-tight text-blush-deep">
         Du kan ikke bestille selv.
       </h2>
-      <p className="max-w-md text-lg text-[#ffc0d8]">
+      <p className="max-w-sm text-sm text-ink">
         Finn en person som ikke er gravid og gi telefonen til dem.
       </p>
       {secondsLeft > 0 ? (
-        <p className="text-xs text-[#ffb3d0]">
+        <p className="text-[10px] tabular-nums text-ink-faint">
           Venter på overlevering … {secondsLeft}
         </p>
       ) : (
         <FakeButton
           onClick={confirmHandover}
-          className="text-[10px] text-[#ffc7dc] underline"
+          className="text-[10px] text-ink-faint"
         >
           Jeg har funnet en ikke-gravid person
         </FakeButton>
