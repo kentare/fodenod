@@ -55,8 +55,12 @@ export default function Home() {
     [],
   );
 
-  // Bumped to show the toast again.
-  const [toastId, setToastId] = useState(0);
+  // Bumping the id shows the toast again (even with the same message).
+  const [toastState, setToastState] = useState({ id: 0, message: "" });
+  const toast = useCallback(
+    (message: string) => setToastState((t) => ({ id: t.id + 1, message })),
+    [],
+  );
 
   // Shortcut "1": back to the landing page ("step 1"), keeping flow data.
   // Ignored while typing in a field, like the other shortcuts.
@@ -70,11 +74,11 @@ export default function Home() {
       )
         return;
       jump("intro");
-      setToastId((n) => n + 1);
+      toast("Du navigerte tilbake til steg 1");
     };
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [jump]);
+  }, [jump, toast]);
 
   const Screen = SCREENS[step];
   return (
@@ -84,6 +88,7 @@ export default function Home() {
         next={next}
         restart={restart}
         goTo={jump}
+        toast={toast}
         data={data}
         setData={setData}
       />
@@ -91,7 +96,7 @@ export default function Home() {
       <StepIndicator current={step} />
       <ShortcutsBox current={step} />
       <Snow />
-      <Toast id={toastId} message="Du navigerte tilbake til steg 1" />
+      <Toast id={toastState.id} message={toastState.message} />
       <DevPanel current={step} onJump={jump} />
     </>
   );

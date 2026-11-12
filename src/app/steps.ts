@@ -37,6 +37,8 @@ export type StepProps = {
   restart: () => void;
   /** Jump straight to a step (it remounts fresh; flow data is kept). */
   goTo: (step: StepId) => void;
+  /** Shows a short toast message near the top of the screen. */
+  toast: (message: string) => void;
   data: FlowData;
   setData: (patch: Partial<FlowData>) => void;
 };

@@ -151,7 +151,7 @@ function speak(text: string, onDone?: () => void) {
   synth.speak(utterance);
 }
 
-export function RegisterStep({ next, data, setData, goTo }: StepProps) {
+export function RegisterStep({ next, data, setData, goTo, toast }: StepProps) {
   // Coming back after an ID was issued restores the locked form and the ID.
   const [values, setValues] = useState<GravForm>(data.gravForm ?? EMPTY);
   /** Set once the form is accepted; swaps the form for the "write it down" view. */
@@ -347,9 +347,14 @@ export function RegisterStep({ next, data, setData, goTo }: StepProps) {
           // selection is off globally: pen and paper.
           <div className="flex flex-col items-center gap-2 rounded-2xl border border-blush-deep bg-paper px-4 py-4 text-center">
             <span className="text-[12px] text-ink-faint">Din gravID:</span>
-            {/* Clicking copies the ID, silently: no hint, no feedback. */}
+            {/* Clicking copies the ID (no hint that it can), then a toast confirms. */}
             <span
-              onClick={() => void navigator.clipboard?.writeText(issuedId).catch(() => {})}
+              onClick={() =>
+                void navigator.clipboard
+                  ?.writeText(issuedId)
+                  .then(() => toast("gravID kopiert"))
+                  .catch(() => {})
+              }
               className="whitespace-nowrap text-2xl font-extralight tracking-[0.2em] tabular-nums text-blush-deep"
             >
               {issuedId}
