@@ -137,16 +137,22 @@ export function Snow() {
       };
     };
 
-    /** Empties the pile and starts a fresh snowfall spread over the whole screen. */
-    const reset = () => {
+    /**
+     * Empties the pile and restarts the snowfall. With `spread`, flakes start
+     * scattered over the screen (first load); otherwise they all start above
+     * it and drift in, so a reset visibly clears the screen.
+     */
+    const reset = (spread = false) => {
       heights.fill(0);
       spray.length = 0;
       flakes.length = 0;
-      for (let i = 0; i < FLAKE_COUNT; i++) flakes.push(spawn({ y: rand(-height * 0.1, height) }));
+      for (let i = 0; i < FLAKE_COUNT; i++)
+        flakes.push(spawn({ y: spread ? rand(-height * 0.1, height) : rand(-height, -4) }));
     };
+    const onReset = () => reset();
 
     resize();
-    reset();
+    reset(true);
 
     const colAt = (x: number) =>
       Math.max(0, Math.min(heights.length - 1, Math.floor(x / COL_W)));
@@ -284,7 +290,7 @@ export function Snow() {
     window.addEventListener("pointercancel", stopWiping);
     window.addEventListener("blur", stopWiping);
     window.addEventListener("resize", resize);
-    window.addEventListener(SNOW_RESET_EVENT, reset);
+    window.addEventListener(SNOW_RESET_EVENT, onReset);
 
     // --- Animation loop ---
 
@@ -388,7 +394,7 @@ export function Snow() {
       window.removeEventListener("pointercancel", stopWiping);
       window.removeEventListener("blur", stopWiping);
       window.removeEventListener("resize", resize);
-      window.removeEventListener(SNOW_RESET_EVENT, reset);
+      window.removeEventListener(SNOW_RESET_EVENT, onReset);
     };
   }, []);
 
