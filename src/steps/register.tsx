@@ -339,7 +339,6 @@ export function RegisterStep({ next, data, setData, goTo }: StepProps) {
               ID
             </span>
           </div>
-          <div className="text-[10px] text-ink-faint">Sikker innlogging*</div>
         </header>
 
         {issuedId !== null && (
@@ -391,8 +390,6 @@ export function RegisterStep({ next, data, setData, goTo }: StepProps) {
             {issuedId !== null ? "Fortsett" : "Send"}
           </FakeButton>
         </div>
-
-        <span className="text-[9px] text-ink-faint">*ikke sikker</span>
 
         {/* WCAG 3.3.1: an unhelpful error, below the fold of your attention. */}
         <p className="h-4 text-center text-[12px] text-[#ea8cad]">
