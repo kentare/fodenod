@@ -157,7 +157,7 @@ export function CheckoutStep({ next }: StepProps) {
             <FakeButton
               key={a.id}
               onClick={() => toggle(a.id, a.shame)}
-              className="flex items-center gap-3 rounded-2xl border border-blush-soft px-4 py-3 text-sm"
+              className="flex items-center gap-3 rounded-2xl border border-blush-soft bg-paper px-4 py-3 text-sm"
             >
               {/* Ticked vs unticked differs only by a pale pink fill. */}
               <span
@@ -191,7 +191,7 @@ export function CheckoutStep({ next }: StepProps) {
           <span className="text-[10px] text-ink-faint">{tipShame(tip)}</span>
         </div>
 
-        <div className="flex flex-col gap-4 rounded-2xl border border-blush-soft p-5">
+        <div className="flex flex-col gap-4 rounded-2xl border border-blush-soft bg-paper p-5">
           <ul className="flex flex-col gap-1.5 text-xs">
             {lines.map((l) => (
               <li key={l.label} className="flex justify-between gap-4">

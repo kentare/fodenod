@@ -117,7 +117,7 @@ export function RegisterStep({ next, setData }: StepProps) {
           </div>
         </div>
 
-        <div className={`rounded-full border ${border("phone")} px-4 pt-2 pb-1`}>
+        <div className={`rounded-full border ${border("phone")} bg-paper px-4 pt-2 pb-1`}>
           <input
             type="range"
             min={0}

@@ -10,8 +10,8 @@ const FLAKE_COUNT = 160;
 const MAX_FILL = 0.7;
 /**
  * Snowfall rate when the screen is empty, as a share of the viewport height per
- * second. It tapers off as the pile grows (see `fillRate`): about 17% covered
- * after one minute, ~27% after two, ~43% after five.
+ * second. It tapers off as the pile grows (see `fillRate`): about 9% covered
+ * after one minute, ~17% after two, ~30% after five.
  */
 const BASE_RATE = 0.0018;
 /** Share of each landing that settles evenly everywhere instead of at the landing spot. */
@@ -81,14 +81,20 @@ function fillRate(fill: number) {
  * Constant snowfall over the whole app. The snow piles up from the bottom,
  * swallows every click that lands on it, and has to be wiped away by
  * dragging the mouse over it. The dev panel (`[data-dev-panel]`) is exempt.
+ *
+ * Two layers: falling flakes are painted behind the page content (so forms
+ * and text cover them), while the pile is painted on top of everything.
  */
 export function Snow() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fallRef = useRef<HTMLCanvasElement>(null);
+  const pileRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const canvas = canvasRef.current;
-    const ctx = canvas?.getContext("2d");
-    if (!canvas || !ctx) return;
+    const fallCanvas = fallRef.current;
+    const pileCanvas = pileRef.current;
+    const fall = fallCanvas?.getContext("2d");
+    const ctx = pileCanvas?.getContext("2d");
+    if (!fallCanvas || !pileCanvas || !fall || !ctx) return;
 
     const palette = readPalette();
     const sprites = { light: makeSprite(palette.blush), deep: makeSprite(palette.blushDeep) };
@@ -105,9 +111,11 @@ export function Snow() {
       const prevW = width;
       width = window.innerWidth;
       height = window.innerHeight;
-      canvas.width = Math.round(width * dpr);
-      canvas.height = Math.round(height * dpr);
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      for (const canvas of [fallCanvas, pileCanvas]) {
+        canvas.width = Math.round(width * dpr);
+        canvas.height = Math.round(height * dpr);
+        canvas.getContext("2d")!.setTransform(dpr, 0, 0, dpr, 0, 0);
+      }
 
       // Resample the existing pile onto the new column grid.
       const cols = Math.ceil(width / COL_W) + 1;
@@ -314,13 +322,16 @@ export function Snow() {
     };
 
     const draw = () => {
-      ctx.clearRect(0, 0, width, height);
-
+      // Back layer: falling flakes, hidden by anything opaque on the page.
+      fall.clearRect(0, 0, width, height);
       for (const f of flakes) {
         const size = f.r * 4.5;
-        ctx.globalAlpha = f.alpha;
-        ctx.drawImage(f.deep ? sprites.deep : sprites.light, f.x - size / 2, f.y - size / 2, size, size);
+        fall.globalAlpha = f.alpha;
+        fall.drawImage(f.deep ? sprites.deep : sprites.light, f.x - size / 2, f.y - size / 2, size, size);
       }
+
+      // Front layer: brushed-off spray and the pile, above everything.
+      ctx.clearRect(0, 0, width, height);
       for (const s of spray) {
         const size = s.r * 4;
         ctx.globalAlpha = 0.9 * (1 - s.age / s.life); // fades out smoothly, never blinks
@@ -399,10 +410,18 @@ export function Snow() {
   }, []);
 
   return (
-    <canvas
-      ref={canvasRef}
-      aria-hidden
-      className="pointer-events-none fixed inset-0 z-[900] h-full w-full"
-    />
+    <>
+      {/* Negative z-index paints above the body background but below page content. */}
+      <canvas
+        ref={fallRef}
+        aria-hidden
+        className="pointer-events-none fixed inset-0 -z-10 h-full w-full"
+      />
+      <canvas
+        ref={pileRef}
+        aria-hidden
+        className="pointer-events-none fixed inset-0 z-[900] h-full w-full"
+      />
+    </>
   );
 }

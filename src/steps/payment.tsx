@@ -264,7 +264,7 @@ export function PaymentStep({ next }: StepProps) {
 
 function Card({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section className="flex flex-col gap-4 rounded-2xl border border-blush-soft p-5">
+    <section className="flex flex-col gap-4 rounded-2xl border border-blush-soft bg-paper p-5">
       <h2 className="text-sm font-light text-blush-deep">{title}</h2>
       {children}
     </section>
