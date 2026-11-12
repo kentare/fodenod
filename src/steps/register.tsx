@@ -1,15 +1,36 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { StepProps } from "@/app/steps";
 import { FakeButton } from "@/components/fake-button";
-import { shuffle } from "@/lib/random";
 
-const FNR_LENGTH = 11;
-const DIGITS = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"] as const;
-const PHONE_MAX = 99_999_999;
-/** Anything below this has fewer than 8 digits (even though we pad it to look fine). */
-const PHONE_MIN_VALID = 10_000_000;
+type Field = "weight" | "age" | "email";
+
+/** Placeholders double as the only labels (WCAG 1.3.1, 3.3.2). */
+const FIELDS: readonly { id: Field; placeholder: string }[] = [
+  { id: "weight", placeholder: "Vekt (kg)" },
+  { id: "age", placeholder: "Alder" },
+  { id: "email", placeholder: "E-post" },
+];
+
+const EMPTY: Record<Field, string> = {
+  weight: "",
+  age: "",
+  email: "",
+};
+
+/** Lenient number check; accepts a Norwegian decimal comma. */
+function between(value: string, min: number, max: number) {
+  const trimmed = value.trim();
+  const n = Number(trimmed.replace(",", "."));
+  return trimmed !== "" && Number.isFinite(n) && n >= min && n <= max;
+}
+
+const VALID: Record<Field, (value: string) => boolean> = {
+  weight: (v) => between(v, 20, 400),
+  age: (v) => between(v, 1, 120),
+  email: (v) => /@.*\./.test(v),
+};
 
 /**
  * Base border colour for every field. Invalid fields get a pink with the
@@ -18,51 +39,63 @@ const PHONE_MIN_VALID = 10_000_000;
 const OK = "border-blush";
 const BAD = "border-[#f397b8]";
 
-/** Each digit picker gets its own order, so muscle memory never helps. */
-function shuffledDigitOrders() {
-  return Array.from({ length: FNR_LENGTH }, () => shuffle(DIGITS));
+/**
+ * Typing "@" is forbidden; the page tells you so out loud, in a Japanese voice
+ * (matching `lang="ja"`), a bit too fast. Pasting one is fine.
+ */
+function scoldForAt() {
+  const synth =
+    typeof window === "undefined" ? undefined : window.speechSynthesis;
+  // No speech engine: the "@" is still blocked, just silently.
+  if (!synth) return;
+  const utterance = new SpeechSynthesisUtterance(
+    "Krøllalfa oppdaget. Krøllalfa er ikke tillatt å skrive. Vennligst lim inn en krøllalfa.",
+  );
+  utterance.lang = "ja-JP";
+  utterance.rate = 1.6;
+  const voice = synth
+    .getVoices()
+    .find((v) => v.lang.toLowerCase().startsWith("ja"));
+  if (voice) utterance.voice = voice;
+  // Restart instead of queueing, so mashing "@" doesn't stack up speeches.
+  synth.cancel();
+  synth.speak(utterance);
 }
 
-function emptyFnr() {
-  return Array<string>(FNR_LENGTH).fill("");
-}
-
-export function RegisterStep({ next, setData }: StepProps) {
-  // Lazy initializer: the step is never server-rendered, and this keeps the
-  // shuffle out of the render body itself.
-  const [orders, setOrders] = useState(shuffledDigitOrders);
-  const [name, setName] = useState("");
-  const [fnr, setFnr] = useState(emptyFnr);
-  const [phone, setPhone] = useState(0);
+export function RegisterStep({ next }: StepProps) {
+  const [values, setValues] = useState(EMPTY);
   // Only recomputed on "send", so fixed fields stay "wrong" until the next try.
-  const [invalid, setInvalid] = useState<ReadonlySet<string>>(new Set());
+  const [invalid, setInvalid] = useState<ReadonlySet<Field>>(new Set());
   const [failed, setFailed] = useState(false);
+  const emailRef = useRef<HTMLInputElement>(null);
 
-  const border = (field: string) => (invalid.has(field) ? BAD : OK);
+  // Native `beforeinput` sees the actual character, whatever the keyboard
+  // layout (AltGr+2 on Norwegian keyboards). Paste and drop stay allowed.
+  useEffect(() => {
+    const email = emailRef.current;
+    if (!email) return;
+    const blockTypedAt = (e: InputEvent) => {
+      if (e.inputType !== "insertText" || !e.data?.includes("@")) return;
+      e.preventDefault();
+      scoldForAt();
+    };
+    email.addEventListener("beforeinput", blockTypedAt);
+    return () => email.removeEventListener("beforeinput", blockTypedAt);
+  }, []);
 
-  function setDigit(index: number, digit: string) {
-    setFnr((current) => current.map((d, i) => (i === index ? digit : d)));
-  }
+  const border = (field: Field) => (invalid.has(field) ? BAD : OK);
 
   function reset() {
-    setOrders(shuffledDigitOrders());
-    setName("");
-    setFnr(emptyFnr());
-    setPhone(0);
+    setValues(EMPTY);
     setInvalid(new Set());
     setFailed(false);
   }
 
   function submit() {
-    const bad = new Set<string>();
-    if (!name.trim()) bad.add("name");
-    fnr.forEach((digit, i) => {
-      if (digit === "") bad.add(`fnr-${i}`);
-    });
-    if (phone < PHONE_MIN_VALID) bad.add("phone");
-
+    const bad = new Set(
+      FIELDS.map((f) => f.id).filter((id) => !VALID[id](values[id])),
+    );
     if (bad.size === 0) {
-      setData({ name: name.trim() });
       next();
       return;
     }
@@ -86,50 +119,19 @@ export function RegisterStep({ next, setData }: StepProps) {
           <div className="text-[9px] text-ink-faint">Sikker innlogging*</div>
         </header>
 
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Fullt navn"
-          autoComplete="off"
-          spellCheck={false}
-          className={`w-full rounded-full border ${border("name")} bg-blush-soft px-4 py-2 text-sm font-light text-ink placeholder:text-ink-faint`}
-        />
-
-        <div>
-          <div className="mb-1 pl-1 text-[9px] text-ink-faint">ddmmåå·iiikk</div>
-          <div className="flex justify-between">
-            {orders.map((order, i) => (
-              <select
-                key={i}
-                value={fnr[i]}
-                onChange={(e) => setDigit(i, e.target.value)}
-                className={`w-[27px] appearance-none rounded-lg border ${border(`fnr-${i}`)} bg-blush-soft py-1.5 text-center text-xs text-ink`}
-              >
-                <option value="">–</option>
-                {order.map((digit) => (
-                  <option key={digit} value={digit}>
-                    {digit}
-                  </option>
-                ))}
-              </select>
-            ))}
-          </div>
-        </div>
-
-        <div className={`rounded-full border ${border("phone")} bg-paper px-4 pt-2 pb-1`}>
+        {FIELDS.map(({ id, placeholder }) => (
           <input
-            type="range"
-            min={0}
-            max={PHONE_MAX}
-            value={phone}
-            onChange={(e) => setPhone(Number(e.target.value))}
-            className="h-px w-full appearance-none bg-blush [&::-moz-range-thumb]:size-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-blush-deep [&::-webkit-slider-thumb]:size-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blush-deep"
+            key={id}
+            ref={id === "email" ? emailRef : undefined}
+            type="text"
+            value={values[id]}
+            onChange={(e) => setValues((v) => ({ ...v, [id]: e.target.value }))}
+            placeholder={placeholder}
+            autoComplete="off"
+            spellCheck={false}
+            className={`w-full rounded-full border ${border(id)} bg-blush-soft px-4 py-2 text-sm font-light text-ink placeholder:text-ink-faint`}
           />
-          <div className="text-right text-[7px] tabular-nums text-ink-faint">
-            {String(phone).padStart(8, "0")}
-          </div>
-        </div>
+        ))}
 
         {/* The one obvious, inviting button wipes the whole form. */}
         <FakeButton
