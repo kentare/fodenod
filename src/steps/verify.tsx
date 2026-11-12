@@ -1,203 +1,300 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import type { StepProps } from "@/app/steps";
-import { FakeButton } from "@/components/fake-button";
-import { rand, shuffle } from "@/lib/random";
+import { isPregnant, smooth } from "@/lib/clip-math";
+import {
+  drawOverlay,
+  type OverlayColors,
+  percentLabel,
+  scoreTracks,
+  type Track,
+  updateTracks,
+} from "@/steps/verify/overlay";
+import { quietLibraryLogs } from "@/steps/verify/quiet-console";
+import type { Scanner } from "@/steps/verify/scanner";
 
-/** 🫃 counts too: a callback to the "are you the pregnant one?" step. */
-const PREGNANT = ["🤰", "🫃", "🫄"] as const;
-const DECOYS = ["🍉", "🎈", "🏀", "🍺", "🥚", "🐋", "🌍"] as const;
-const GRID_SIZE = 9;
-/** On this attempt we give up and let anything through. */
-const MERCY_ATTEMPT = 3;
-const MERCY_DELAY_MS = 1600;
-/** WCAG 2.2.1 fail: the error vanishes before you've finished reading it. */
-const ERROR_VISIBLE_MS = 1800;
+/** Throttle for the verdict text: at most two changes per second (WCAG 2.3.1). */
+const UI_TICK_MS = 500;
+/** The "gravid" verdict must hold this long before we believe it. */
+const PREGNANT_HOLD_MS = 3000;
+/** Without a camera we just take your word for it, eventually. */
+const NO_CAMERA_ADVANCE_MS = 8000;
+/** After this long on the step, we give up and let anything through. */
+const MERCY_AFTER_MS = 30000;
+const MERCY_DELAY_MS = 1500;
+/** A person counts as gone after the detector has seen nobody for this long. */
+const PERSON_GRACE_MS = 1000;
 
-type Tile = {
-  emoji: string;
-  pregnant: boolean;
-  rotate: number;
-  blur: number;
-  scale: number;
+type Status = "loading" | "nocamera" | "empty" | "pregnant" | "notpregnant";
+
+const STATUS_TEXT: Record<Status, string> = {
+  loading: "Et øyeblikk…",
+  nocamera: "Fant ikke noe kamera. Vi antar at du er gravid.",
+  empty: "Vis magen til kameraet",
+  pregnant: "Du er gravid",
+  notpregnant: "Du er ikke gravid",
 };
 
-type Verdict = "wrong" | "mercy" | "speech" | null;
-
-function makeTiles(): Tile[] {
-  const pregnantCount = Math.floor(rand(2, 5)); // 2–4 bellies per round
-  const bellies = Array.from({ length: pregnantCount }, () => ({
-    emoji: PREGNANT[Math.floor(Math.random() * PREGNANT.length)],
-    pregnant: true,
-  }));
-  const decoys = shuffle(DECOYS)
-    .slice(0, GRID_SIZE - pregnantCount)
-    .map((emoji) => ({ emoji, pregnant: false }));
-
-  return shuffle([...bellies, ...decoys]).map((tile) => ({
-    ...tile,
-    rotate: rand(-40, 40),
-    blur: rand(1, 2.4),
-    scale: rand(0.75, 1.3),
-  }));
-}
-
-/**
- * WCAG 1.1.1: the audio alternative reads the Norwegian instructions with a
- * Japanese voice (matching `lang="ja"`), at a pace nobody can follow.
- */
-function speakInstructions() {
-  if (typeof window === "undefined" || !("speechSynthesis" in window)) {
-    return false;
-  }
-  const utterance = new SpeechSynthesisUtterance(
-    "Velg alle bilder med en gravid mage. Eller ikke. Vi hører ikke etter.",
-  );
-  utterance.lang = "ja-JP";
-  utterance.rate = 2.4;
-  utterance.pitch = 0.1;
-  window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(utterance);
-  return true;
-}
-
 export function VerifyStep({ next }: StepProps) {
-  // Shuffled in the initializer: this step only ever mounts on the client.
-  const [tiles, setTiles] = useState(makeTiles);
-  const [selected, setSelected] = useState<ReadonlySet<number>>(new Set());
-  const [attempts, setAttempts] = useState(0);
-  const [verdict, setVerdict] = useState<Verdict>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [status, setStatus] = useState<Status>("loading");
+  const [mercy, setMercy] = useState(false);
 
-  // Third strike: roll eyes, then let them through anyway.
+  // `next()` runs exactly once, whichever path gets there first.
+  const advancedRef = useRef(false);
+  const advance = useCallback(() => {
+    if (advancedRef.current) return;
+    advancedRef.current = true;
+    next();
+  }, [next]);
+
   useEffect(() => {
-    if (verdict !== "mercy") return;
-    const timer = setTimeout(next, MERCY_DELAY_MS);
-    return () => clearTimeout(timer);
-  }, [verdict, next]);
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
+    // Library status chatter goes to console.debug, not the dev overlay.
+    const restoreConsole = quietLibraryLogs();
+    let cancelled = false;
+    let stream: MediaStream | null = null;
+    let scanner: Scanner | null = null;
+    let frame = 0;
+    const timers: ReturnType<typeof setTimeout>[] = [];
 
-  // Transient messages disappear on their own schedule, not the user's.
-  useEffect(() => {
-    if (verdict !== "wrong" && verdict !== "speech") return;
-    const timer = setTimeout(() => setVerdict(null), ERROR_VISIBLE_MS);
-    return () => clearTimeout(timer);
-  }, [verdict, attempts]);
+    let cameraFailed = false;
+    let busy = false;
+    let score: number | null = null;
+    // When the detector last started seeing nobody (null: someone's there).
+    // Measured from detector results, not wall time, so a slow frame doesn't
+    // count as an empty room.
+    let emptySince: number | null = 0;
+    let lastVideoTime = -1;
+    let lastTimestamp = 0;
+    let pregnantSince: number | null = null;
 
-  const locked = verdict === "mercy";
+    // Person boxes over the preview. Colours come from palette classes on the
+    // canvas (text = outline, border = tag, fill = tag text).
+    let tracks: Track[] = [];
+    let trackCount = 0;
+    const style = getComputedStyle(canvas);
+    const colors: OverlayColors = {
+      stroke: style.color,
+      tag: style.borderTopColor,
+      tagText: style.fill,
+    };
+    const redraw = () => drawOverlay(canvas, video, tracks, colors, style.fontFamily);
 
-  const toggle = (index: number) => {
-    if (locked) return;
-    setSelected((current) => {
-      const updated = new Set(current);
-      if (!updated.delete(index)) updated.add(index);
-      return updated;
-    });
-  };
+    const failCamera = () => {
+      if (cancelled || cameraFailed) return;
+      cameraFailed = true;
+      setStatus("nocamera");
+      timers.push(setTimeout(advance, NO_CAMERA_ADVANCE_MS));
+    };
 
-  const reshuffle = () => {
-    setTiles(makeTiles());
-    setSelected(new Set());
-  };
+    // Mercy rule: nobody waits forever, not even the not-pregnant.
+    timers.push(
+      setTimeout(() => {
+        if (cancelled || advancedRef.current || cameraFailed) return;
+        setMercy(true);
+        timers.push(setTimeout(advance, MERCY_DELAY_MS));
+      }, MERCY_AFTER_MS),
+    );
 
-  const confirm = () => {
-    if (locked) return;
-    const correct = tiles.every((tile, i) => tile.pregnant === selected.has(i));
-    if (correct) {
-      next();
-      return;
-    }
-    const attempt = attempts + 1;
-    setAttempts(attempt);
-    if (attempt >= MERCY_ATTEMPT) {
-      setVerdict("mercy");
-      return;
-    }
-    reshuffle();
-    setVerdict("wrong");
-  };
+    const loop = () => {
+      frame = requestAnimationFrame(loop);
+      if (!scanner || video.readyState < 2 || !video.videoWidth) {
+        return;
+      }
+      if (video.currentTime === lastVideoTime) return;
+      lastVideoTime = video.currentTime;
 
-  const audio = () => {
-    if (locked) return;
-    setVerdict(speakInstructions() ? null : "speech");
-  };
+      // MediaPipe wants strictly increasing timestamps.
+      const now = performance.now();
+      lastTimestamp = Math.max(now, lastTimestamp + 1);
+      let people;
+      try {
+        people = scanner.detectPeople(video, lastTimestamp);
+      } catch {
+        return; // a bad frame; try the next one
+      }
+      const update = updateTracks(tracks, people, now, () => ++trackCount);
+      tracks = update.tracks;
+      redraw();
+      if (people.length === 0) {
+        emptySince ??= now;
+        return;
+      }
+      emptySince = null;
+
+      // One inference at a time; skip frames while busy.
+      if (busy) return;
+      busy = true;
+      scanner
+        .scoreCrops(video, people)
+        .then((scores) => {
+          if (cancelled) return;
+          tracks = scoreTracks(tracks, update.ids, scores);
+          const scored = scores.filter((p): p is number => p !== null);
+          // The frame's score is its most pregnant-looking person.
+          if (scored.length > 0) score = smooth(score, Math.max(...scored));
+        })
+        .catch(() => {
+          // A dropped frame; the next one gets another go.
+        })
+        .finally(() => {
+          busy = false;
+        });
+    };
+
+    // Turn the latest score into text, no more often than every UI_TICK_MS.
+    const tick = setInterval(() => {
+      if (cancelled || cameraFailed) return;
+      const now = performance.now();
+      let latest: Status;
+      if (!scanner) {
+        latest = "loading";
+      } else if (emptySince !== null && now - emptySince > PERSON_GRACE_MS) {
+        score = null;
+        latest = "empty";
+      } else if (score === null) {
+        latest = "loading"; // someone's there; first score is on its way
+      } else {
+        latest = isPregnant(score) ? "pregnant" : "notpregnant";
+      }
+      setStatus(latest);
+
+      // Tag text changes on this throttle only, so the percent never flickers.
+      tracks = tracks.map((track) => ({
+        ...track,
+        label: track.score === null ? null : percentLabel(track.score),
+      }));
+      redraw();
+
+      if (latest === "pregnant") {
+        pregnantSince ??= now;
+        if (now - pregnantSince >= PREGNANT_HOLD_MS) advance();
+      } else {
+        pregnantSince = null;
+      }
+    }, UI_TICK_MS);
+
+    // The code chunk starts loading right away; the (large) model downloads
+    // only start once there's a camera to point them at.
+    const scannerModule = import("@/steps/verify/scanner");
+    scannerModule.catch(() => {}); // handled in startScanner, if it runs
+
+    // Settles once model loading has finished (or failed) for this mount.
+    let scannerSettled: Promise<void> = Promise.resolve();
+
+    const startScanner = async () => {
+      try {
+        const { createScanner } = await scannerModule;
+        const loaded = await createScanner();
+        if (cancelled) {
+          loaded.dispose();
+          return;
+        }
+        scanner = loaded;
+      } catch {
+        // Stays on "Et øyeblikk…"; the mercy rule gets them out.
+      }
+    };
+
+    const startCamera = async () => {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        failCamera();
+        return;
+      }
+      let media: MediaStream;
+      try {
+        media = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "user", width: 640, height: 480 },
+          audio: false,
+        });
+      } catch {
+        failCamera();
+        return;
+      }
+      if (cancelled) {
+        media.getTracks().forEach((track) => track.stop());
+        return;
+      }
+      stream = media;
+      video.srcObject = media;
+      void video.play().catch(() => {});
+      scannerSettled = startScanner();
+    };
+
+    void startCamera();
+    frame = requestAnimationFrame(loop);
+
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(frame);
+      clearInterval(tick);
+      timers.forEach(clearTimeout);
+      stream?.getTracks().forEach((track) => track.stop());
+      video.srcObject = null;
+      // Downloads can't be aborted: wait for loading to settle and any
+      // in-flight inference to finish, then release the models. The console
+      // filter stays until then, since late loads log too.
+      const idle = (): Promise<void> =>
+        busy
+          ? new Promise((resolve) => setTimeout(resolve, 50)).then(idle)
+          : Promise.resolve();
+      void scannerSettled
+        .then(idle)
+        .then(() => {
+          scanner?.dispose();
+          scanner = null;
+        })
+        .catch(() => {})
+        .finally(restoreConsole);
+    };
+  }, [advance]);
+
+  const verdict = status === "pregnant" || status === "notpregnant";
 
   return (
-    <main className="flex min-h-screen flex-1 items-center justify-center p-6 text-ink">
-      <div className="relative w-[326px] rounded-2xl border border-blush-soft bg-paper px-5 pt-6 pb-4">
-        {/* WCAG 2.5.3 + 4.1.2: an unlabeled "close" icon that just gives you new pictures. */}
-        <FakeButton
-          onClick={reshuffle}
-          className="absolute top-2 right-3 text-sm leading-none font-extralight text-ink-faint"
-        >
-          ×
-        </FakeButton>
-
-        <div className="pb-4">
-          {/* WCAG 1.4.3: pale pink instructions, mid-sentence italics. */}
-          <p className="text-[11px] leading-snug font-light">
-            Velg alle bilder med en <i>gravid mage</i>. Klikk «Bekreft» når det
-            ikke er flere igjen.
-          </p>
-          <p className="mt-1 text-[8px] text-ink-faint">
-            Forsøk {Math.min(attempts + 1, MERCY_ATTEMPT)} av 2
-          </p>
+    <main className="flex min-h-screen flex-1 flex-col items-center justify-center p-6 text-ink">
+      <h1 className="mb-6 text-3xl font-extralight tracking-tight text-blush-deep">
+        Bekreft graviditet
+      </h1>
+      <div className="w-[362px] rounded-2xl border border-blush-soft bg-paper p-5">
+        {/* WCAG 1.4.3: instructions in barely-there pink. */}
+        <p className="mb-3 text-[10px] leading-snug text-ink-faint">
+          Hold magen foran kameraet. Siden går videre av seg selv når vi er
+          fornøyde.
+        </p>
+        <div className="relative w-[320px]">
+          <video
+            ref={videoRef}
+            autoPlay
+            muted
+            playsInline
+            className="block aspect-[4/3] w-full -scale-x-100 rounded-xl bg-blush-soft object-cover"
+          />
+          {/* Not mirrored itself: box positions are mirrored in code so the
+              tag text reads the right way round. */}
+          <canvas
+            ref={canvasRef}
+            aria-hidden
+            className="pointer-events-none absolute inset-0 h-full w-full border-0 border-blush fill-paper text-blush-deep"
+          />
         </div>
-
-        {/* WCAG 1.1.1 + 1.4.1: unlabeled pictures; selection is a faint tint. */}
-        <div aria-hidden className="grid grid-cols-3 gap-1.5">
-          {tiles.map((tile, i) => {
-            const isSelected = selected.has(i);
-            return (
-              <div
-                key={`${attempts}-${i}`}
-                onClick={() => toggle(i)}
-                className={`flex aspect-square items-center justify-center overflow-hidden rounded-xl border ${
-                  isSelected
-                    ? "border-blush bg-blush-soft opacity-[0.88]"
-                    : "border-blush-soft bg-blush-soft"
-                }`}
-              >
-                <span
-                  className="select-none text-[44px] leading-none"
-                  style={{
-                    transform: `rotate(${tile.rotate}deg) scale(${tile.scale})`,
-                    filter: `blur(${tile.blur}px) saturate(0.6)`,
-                  }}
-                >
-                  {tile.emoji}
-                </span>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="mt-5 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            {/* The inviting primary pill throws away your selection. */}
-            <FakeButton
-              onClick={reshuffle}
-              className="rounded-full bg-blush px-4 py-1.5 text-[11px] text-paper"
-            >
-              nye bilder
-            </FakeButton>
-            <FakeButton onClick={audio} className="text-[9px] text-ink-faint">
-              lydversjon
-            </FakeButton>
-          </div>
-          {/* WCAG 2.5.8: tiny target, tucked in the corner, looks like plain text. */}
-          <FakeButton onClick={confirm} className="text-[10px] text-ink-faint">
-            Bekreft
-          </FakeButton>
-        </div>
-
-        <div className="mt-2 h-4 text-[10px]">
-          {verdict === "wrong" && (
-            <span className="text-[#ea8cad]">Feil. Prøv igjen.</span>
-          )}
-          {verdict === "mercy" && <span>Greit nok. 🙄</span>}
-          {verdict === "speech" && (
-            <span className="text-ink-faint">
-              Lyd er ikke tilgjengelig. Prøv å lytte hardere.
+        <div className="mt-4 flex min-h-16 items-center justify-center text-center">
+          {mercy ? (
+            <span className="text-3xl font-extralight text-blush">
+              Greit nok. 🙄
+            </span>
+          ) : verdict ? (
+            <span className="text-4xl font-extralight tracking-tight text-blush">
+              {STATUS_TEXT[status]}
+            </span>
+          ) : (
+            <span className="text-[11px] font-light text-ink-faint">
+              {STATUS_TEXT[status]}
             </span>
           )}
         </div>
