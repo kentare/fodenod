@@ -19,7 +19,7 @@ export function DevPanel({
   return (
     <div
       data-dev-panel
-      className="fixed bottom-4 right-4 z-[1000] w-48 rounded border border-white/20 bg-black/85 font-mono text-xs text-white shadow-lg backdrop-blur"
+      className="fixed bottom-4 right-4 z-[1000] w-48 rounded border border-white/20 bg-black/85 font-mono text-[12px] text-white shadow-lg backdrop-blur"
     >
       <button
         type="button"

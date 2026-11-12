@@ -35,6 +35,8 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), sans-serif;
+  /* Unstyled text is 15% bigger too (text-* utilities are scaled in @theme). */
+  font-size: 1.15rem;
 }
 
 /* WCAG zero (see AGENTS.md). 2.4.7: no focus indicator anywhere. */
