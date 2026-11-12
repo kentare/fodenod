@@ -29,7 +29,7 @@ export function EndStep({ data, restart }: StepProps) {
   return (
     <main
       aria-hidden
-      className="flex min-h-screen flex-1 flex-col items-center bg-paper px-4 pt-10 pb-10 text-ink"
+      className="flex min-h-screen flex-1 flex-col items-center bg-paper px-4 pt-20 pb-10 text-ink"
     >
       {/* A <marquee> in spirit; JSX doesn't type the real element anymore.
           Slow, smooth drift only: nothing here flashes (WCAG 2.3.1 hard limit). */}
