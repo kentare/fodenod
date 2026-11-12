@@ -354,9 +354,6 @@ export function RegisterStep({ next, data, setData, goTo }: StepProps) {
             >
               {issuedId}
             </span>
-            <span className="text-[12px] text-ink-faint">
-              Skriv den ned. Du trenger den senere.
-            </span>
           </div>
         )}
 
