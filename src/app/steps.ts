@@ -3,12 +3,13 @@ import type { TransportId } from "@/steps/transport-options";
 /** Every screen in the flow, in order. Add new steps here; the dev panel picks them up. */
 export const STEPS = [
   { id: "loading", label: "Loading screen" },
-  { id: "man", label: "Are you a man?" },
+  { id: "payment", label: "Payment details" },
+  { id: "pregnant", label: "Are you the pregnant one?" },
   { id: "terms", label: "Terms & conditions" },
   { id: "register", label: "Registration (gravID)" },
   { id: "verify", label: "Pregnancy verification" },
-  { id: "transport", label: "Mode of transport" },
   { id: "checkout", label: "Checkout" },
+  { id: "transport", label: "Mode of transport" },
   { id: "end", label: "End screen" },
 ] as const;
 

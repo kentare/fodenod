@@ -31,7 +31,7 @@ Ideas for new screens: `div`s instead of buttons (no keyboard access), colour as
 
 ### Steps
 
-The flow: loading → are you a man → T&C → gravID registration → pregnancy verification → transport → checkout → end.
+The flow: loading → payment details → are you the pregnant one → T&C → gravID registration → pregnancy verification → checkout → transport → end.
 
 - `src/app/steps.ts`: step order, shared `FlowData`, and the `StepProps` every step receives (`next`, `restart`, `data`, `setData`).
 - `src/steps/<step>.tsx`: one file per step. `src/app/page.tsx` maps step ids to components.

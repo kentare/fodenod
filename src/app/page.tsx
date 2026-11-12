@@ -5,7 +5,8 @@ import { DevPanel } from "@/components/dev-panel";
 import { LoadingStep } from "@/components/flash-loader";
 import { CheckoutStep } from "@/steps/checkout";
 import { EndStep } from "@/steps/end";
-import { ManStep } from "@/steps/man";
+import { PaymentStep } from "@/steps/payment";
+import { PregnantStep } from "@/steps/pregnant";
 import { RegisterStep } from "@/steps/register";
 import { TermsStep } from "@/steps/terms";
 import { TransportStep } from "@/steps/transport";
@@ -14,7 +15,8 @@ import { type FlowData, STEPS, type StepId, type StepProps } from "./steps";
 
 const SCREENS: Record<StepId, ComponentType<StepProps>> = {
   loading: LoadingStep,
-  man: ManStep,
+  payment: PaymentStep,
+  pregnant: PregnantStep,
   terms: TermsStep,
   register: RegisterStep,
   verify: VerifyStep,
