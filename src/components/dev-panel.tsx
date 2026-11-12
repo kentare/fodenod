@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { STEPS, type StepId } from "@/app/steps";
+import { SNOW_RESET_EVENT } from "@/components/snow";
 
 /** Development-only step switcher. Renders nothing in production builds. */
 export function DevPanel({
@@ -16,7 +17,10 @@ export function DevPanel({
   if (process.env.NODE_ENV !== "development") return null;
 
   return (
-    <div className="fixed bottom-4 right-4 z-[1000] w-48 rounded border border-white/20 bg-black/85 font-mono text-xs text-white shadow-lg backdrop-blur">
+    <div
+      data-dev-panel
+      className="fixed bottom-4 right-4 z-[1000] w-48 rounded border border-white/20 bg-black/85 font-mono text-xs text-white shadow-lg backdrop-blur"
+    >
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
@@ -41,6 +45,17 @@ export function DevPanel({
             </li>
           ))}
         </ol>
+      )}
+      {open && (
+        <div className="border-t border-white/20 p-1">
+          <button
+            type="button"
+            onClick={() => window.dispatchEvent(new Event(SNOW_RESET_EVENT))}
+            className="w-full rounded px-2 py-1 text-left hover:bg-white/15"
+          >
+            Reset snow
+          </button>
+        </div>
       )}
     </div>
   );
