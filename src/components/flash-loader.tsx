@@ -1,14 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import type { StepProps } from "@/app/steps";
+import { rand } from "@/lib/random";
 
 const MIN_DURATION_MS = 5000;
 const MAX_DURATION_MS = 10000;
 const DOTS = 12;
-
-function rand(min: number, max: number) {
-  return min + Math.random() * (max - min);
-}
 
 /**
  * Picks the next displayed progress. It loosely follows real elapsed time,
@@ -54,8 +52,8 @@ export function FlashLoader({ onComplete }: { onComplete: () => void }) {
   }, [onComplete]);
 
   return (
-    <div className="flash-stage fixed inset-0 z-50 flex flex-col items-center justify-center gap-8 bg-[#111] font-retro text-[#e8e8e8]">
-      <div className="relative h-20 w-20" aria-hidden>
+    <div aria-hidden className="flash-stage fixed inset-0 z-50 flex flex-col items-center justify-center gap-8 bg-[#111] font-retro text-[#e8e8e8]">
+      <div className="relative h-20 w-20">
         {Array.from({ length: DOTS }, (_, i) => (
           <span
             key={i}
@@ -74,23 +72,21 @@ export function FlashLoader({ onComplete }: { onComplete: () => void }) {
       </h1>
 
       <div className="flex w-[min(320px,80vw)] flex-col gap-2">
-        <div
-          className="h-4 border-2 border-[#e8e8e8] p-[2px]"
-          role="progressbar"
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={progress}
-        >
+        <div className="h-4 border-2 border-[#e8e8e8] p-[2px]">
           <div
             className="h-full bg-gradient-to-r from-[#ff6a00] to-[#ffd000]"
             style={{ width: `${progress}%` }}
           />
         </div>
-        <div className="flex justify-between text-[10px]">
+        <div className="flex justify-between text-[7px] text-[#333]">
           <span className="flash-blink">LOADING</span>
           <span>{progress}%</span>
         </div>
       </div>
     </div>
   );
+}
+
+export function LoadingStep({ next }: StepProps) {
+  return <FlashLoader onComplete={next} />;
 }

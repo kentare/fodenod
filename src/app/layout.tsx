@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Press_Start_2P } from "next/font/google";
 import "./globals.css";
 
@@ -19,14 +19,23 @@ const pixel = Press_Start_2P({
 });
 
 export const metadata: Metadata = {
-  title: "fødenød",
+  // WCAG 2.4.2 fail: meaningless title, like an unsaved Flash file.
+  title: "Untitled-1",
   description: "Get to the hospital. Eventually.",
+};
+
+// WCAG 1.4.4 fail: pinch-zoom disabled.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
-      lang="en"
+      lang="ja"
       className={`${geistSans.variable} ${geistMono.variable} ${pixel.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>

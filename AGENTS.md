@@ -7,3 +7,34 @@ This version has breaking changes — APIs, conventions, and file structure may 
 This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
 
 <!-- END:nextjs-agent-rules -->
+
+## Project: fødenød (bad UI battle entry)
+
+This is a deliberately terrible app for a friendly "bad UI battle". The theme: you're in labor and need transport to the hospital, fast. Bad UX is the feature.
+
+### Accessibility target: WCAG zero
+
+Fail as many WCAG success criteria as possible, on every screen. Examples already in place:
+
+- wrong `lang` (`ja`), meaningless `<title>` (`Untitled-1`), pinch-zoom disabled
+- no focus outlines, no text selection, no pointer cursor, dark-mode preference ignored
+- low-contrast, tiny text; screens hidden from screen readers with `aria-hidden`; no ARIA roles or states
+- unpredictable timing that the user can't control (the loader)
+
+Ideas for new screens: `div`s instead of buttons (no keyboard access), colour as the only signal, unlabeled inputs, placeholder text as labels, timeouts, moving targets, icons without alt text, and important text inside images.
+
+### Hard limits (don't cross these)
+
+1. **The flow must stay completable** with a mouse on a desktop browser. Annoying is good; impossible is not.
+2. **Nothing flashes more than 3 times per second** (WCAG 2.3.1). Seizure risk is real harm, not a joke.
+3. **The dev panel (`src/components/dev-panel.tsx`) stays usable.** It's tooling, not part of the entry.
+
+### Steps
+
+The flow: loading → are you a man → T&C → gravID registration → pregnancy verification → transport → checkout → end.
+
+- `src/app/steps.ts`: step order, shared `FlowData`, and the `StepProps` every step receives (`next`, `restart`, `data`, `setData`).
+- `src/steps/<step>.tsx`: one file per step. `src/app/page.tsx` maps step ids to components.
+- `src/components/fake-button.tsx`: use `FakeButton` (a plain div) instead of `<button>`.
+- The dev panel lists every registered step; jumping to a step remounts it fresh.
+- Copy is in Norwegian (bokmål).
