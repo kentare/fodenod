@@ -292,6 +292,7 @@ export function RegisterStep({ next, setData }: StepProps) {
   const border = (field: Field) => (invalid.has(field) ? BAD : OK);
 
   function reset() {
+    setIssuedId(null);
     setValues(EMPTY);
     setInvalid(new Set());
     setFailed(false);
@@ -327,66 +328,61 @@ export function RegisterStep({ next, setData }: StepProps) {
           <div className="text-[9px] text-ink-faint">Sikker innlogging*</div>
         </header>
 
-        {issuedId !== null ? (
-          // No copy button, and text selection is off globally: pen and paper.
-          <div className="flex flex-col items-center gap-3 text-center">
+        {issuedId !== null && (
+          // Shown above the (now locked) form. No copy button, and text
+          // selection is off globally: pen and paper.
+          <div className="flex flex-col items-center gap-2 rounded-2xl border border-blush-deep bg-paper px-4 py-4 text-center">
             <span className="text-[10px] text-ink-faint">Din gravID:</span>
-            <span className="whitespace-nowrap text-3xl font-extralight tracking-[0.2em] tabular-nums text-blush-deep">
+            <span className="whitespace-nowrap text-2xl font-extralight tracking-[0.2em] tabular-nums text-blush-deep">
               {issuedId}
             </span>
             <span className="text-[10px] text-ink-faint">
               Skriv den ned. Du trenger den senere.
             </span>
-            <FakeButton
-              onClick={next}
-              className="mt-6 rounded-full border border-blush-deep px-6 py-2 text-center text-sm text-blush-deep"
-            >
-              Fortsett
-            </FakeButton>
           </div>
-        ) : (
-          <>
-            {FIELDS.map(({ id, placeholder }) => (
-              <div key={id} className="relative">
-                <input
-                  ref={id === "email" ? emailRef : undefined}
-                  type="text"
-                  value={values[id]}
-                  onChange={(e) =>
-                    setValues((v) => ({ ...v, [id]: e.target.value }))
-                  }
-                  placeholder={placeholder}
-                  autoComplete="off"
-                  spellCheck={false}
-                  className={`w-full rounded-full border ${border(id)} bg-blush-soft px-4 py-2 text-sm font-light text-ink placeholder:text-ink-faint`}
-                />
-              </div>
-            ))}
-
-            {/* Two normal-sized pills; the filled, inviting one wipes the form. */}
-            <div className="mt-6 flex justify-center gap-3">
-              <FakeButton
-                onClick={reset}
-                className="rounded-full bg-blush px-6 py-2 text-center text-sm text-paper"
-              >
-                Nullstill
-              </FakeButton>
-              <FakeButton
-                onClick={submit}
-                className="rounded-full border border-blush-deep px-6 py-2 text-center text-sm text-blush-deep"
-              >
-                Send
-              </FakeButton>
-            </div>
-
-            <span className="text-[8px] text-ink-faint">*ikke sikker</span>
-
-            {/* WCAG 3.3.1: an unhelpful error, below the fold of your attention. */}
-            <p className="h-4 text-center text-[10px] text-[#ea8cad]">
-              {failed && "Noe gikk galt. (feil 0x1F4A9)"}
-            </p>
-          </>
         )}
+
+        {FIELDS.map(({ id, placeholder }) => (
+          <div key={id} className="relative">
+            <input
+              ref={id === "email" ? emailRef : undefined}
+              type="text"
+              value={values[id]}
+              onChange={(e) =>
+                setValues((v) => ({ ...v, [id]: e.target.value }))
+              }
+              readOnly={issuedId !== null}
+              placeholder={placeholder}
+              autoComplete="off"
+              spellCheck={false}
+              className={`w-full rounded-full border ${border(id)} bg-blush-soft px-4 py-2 text-sm font-light text-ink placeholder:text-ink-faint`}
+            />
+          </div>
+        ))}
+
+        {/* Two normal-sized pills; the filled, inviting one wipes the form
+            (and, once issued, the gravID with it). */}
+        <div className="mt-6 flex justify-center gap-3">
+          <FakeButton
+            onClick={reset}
+            className="rounded-full bg-blush px-6 py-2 text-center text-sm text-paper"
+          >
+            Nullstill
+          </FakeButton>
+          <FakeButton
+            onClick={issuedId !== null ? next : submit}
+            className="rounded-full border border-blush-deep px-6 py-2 text-center text-sm text-blush-deep"
+          >
+            {issuedId !== null ? "Fortsett" : "Send"}
+          </FakeButton>
+        </div>
+
+        <span className="text-[8px] text-ink-faint">*ikke sikker</span>
+
+        {/* WCAG 3.3.1: an unhelpful error, below the fold of your attention. */}
+        <p className="h-4 text-center text-[10px] text-[#ea8cad]">
+          {failed && "Noe gikk galt. (feil 0x1F4A9)"}
+        </p>
       </div>
 
       {listening && (
