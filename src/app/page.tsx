@@ -1,12 +1,13 @@
 "use client";
 
-import { type ComponentType, useCallback, useState } from "react";
+import { type ComponentType, useCallback, useEffect, useState } from "react";
 import { DevPanel } from "@/components/dev-panel";
 import { LoadingStep } from "@/components/flash-loader";
 import { CornerLogo } from "@/components/logo";
 import { ShortcutsBox } from "@/components/shortcuts-box";
 import { Snow } from "@/components/snow";
 import { StepIndicator } from "@/components/step-indicator";
+import { Toast } from "@/components/toast";
 import { CheckoutStep } from "@/steps/checkout";
 import { EndStep } from "@/steps/end";
 import { IntroStep } from "@/steps/intro";
@@ -54,6 +55,27 @@ export default function Home() {
     [],
   );
 
+  // Bumped to show the toast again.
+  const [toastId, setToastId] = useState(0);
+
+  // Shortcut "1": back to the landing page ("step 1"), keeping flow data.
+  // Ignored while typing in a field, like the other shortcuts.
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== "1" || e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
+      const t = e.target;
+      if (
+        t instanceof HTMLElement &&
+        (t.isContentEditable || ["INPUT", "TEXTAREA", "SELECT"].includes(t.tagName))
+      )
+        return;
+      jump("intro");
+      setToastId((n) => n + 1);
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [jump]);
+
   const Screen = SCREENS[step];
   return (
     <>
@@ -69,6 +91,7 @@ export default function Home() {
       <StepIndicator current={step} />
       <ShortcutsBox current={step} />
       <Snow />
+      <Toast id={toastId} message="Du navigerte tilbake til steg 1" />
       <DevPanel current={step} onJump={jump} />
     </>
   );

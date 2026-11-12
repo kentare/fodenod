@@ -4,6 +4,7 @@ import type { StepId } from "@/app/steps";
 const SHORTCUTS = [
   { keys: "@", action: "starter tale-til-tekst" },
   { keys: "7", action: "ambulanse" },
+  { keys: "1", action: "tilbake til start" },
 ] as const;
 
 export function ShortcutsBox({ current }: { current: StepId }) {
