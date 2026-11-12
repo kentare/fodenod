@@ -66,9 +66,7 @@ export function PaymentStep({ next }: StepProps) {
   const [maidenName, setMaidenName] = useState("");
   const [pet, setPet] = useState("");
   const [away, setAway] = useState("");
-  const [spareKey, setSpareKey] = useState("");
   const [saveCard, setSaveCard] = useState(true);
-  const [anyAmount, setAnyAmount] = useState(true);
   const [missing, setMissing] = useState<readonly string[]>([]);
 
   function submit() {
@@ -228,27 +226,11 @@ export function PaymentStep({ next }: StepProps) {
                 ))}
               </select>
             </Field>
-            <Field label="Hvor ligger reservenøkkelen?">
-              <input
-                {...NO_AUTOFILL}
-                type="text"
-                value={spareKey}
-                onChange={(e) => setSpareKey(e.target.value)}
-                placeholder="f.eks. under dørmatta"
-                className={INPUT}
-              />
-            </Field>
-            <p className="px-4 text-[10px] text-ink-faint">
-              Brukes kun til å vanne plantene dine. 🪴
-            </p>
           </Card>
 
           <div className="flex flex-col gap-2 px-4 text-xs">
             <Consent checked={saveCard} onChange={setSaveCard}>
               Lagre kortet for fremtidige fødsler
-            </Consent>
-            <Consent checked={anyAmount} onChange={setAnyAmount}>
-              Tillat trekk av valgfritt beløp, når som helst
             </Consent>
           </div>
 
