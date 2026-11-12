@@ -3,10 +3,10 @@
 import { useEffect, useState } from "react";
 import type { StepProps } from "@/app/steps";
 import { FakeButton } from "@/components/fake-button";
-import { formatNok, TRANSPORTS } from "@/steps/transport-options";
+import { formatNok, PRICIEST } from "@/steps/transport-options";
 
 /** You pay for the priciest ride up front; you choose the actual one later. */
-const PREPAID = TRANSPORTS.reduce((max, t) => (t.price > max.price ? t : max));
+const PREPAID = PRICIEST;
 const BOOKING_FEE = 149;
 const FEE_FOR_FEE_RATE = 0.1;
 const ENV_PERCENT = 7;
