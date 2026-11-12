@@ -236,9 +236,7 @@ export function PaymentStep({ next }: StepProps) {
           </FakeButton>
         </form>
 
-        <p className="text-center text-[13px] text-ink">
-          Dette er en parodi. Ikke bruk ekte kortinformasjon. Ingenting lagres eller sendes.
-        </p>
+
       </div>
     </main>
   );

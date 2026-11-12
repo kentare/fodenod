@@ -45,7 +45,7 @@ The payment step looks like a real card form, so real people might type real det
 
 - Nothing entered leaves component state: no `setData`, storage, network or logging.
 - Block autofill: `autoComplete="off"`, no `name`/`id`/`cc-*` hints, no `type="password"` (mask with `-webkit-text-security`), and labels drawn with CSS so browsers don't detect card fields.
-- No real brands, banks or regulators. Keep the visible "Dette er en parodi…" footnote.
+- No real brands, banks or regulators. (The visible parody disclaimer was removed at the user's request; the two rules above are what keep it safe.)
 
 ### Steps
 
