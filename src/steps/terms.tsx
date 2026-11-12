@@ -41,8 +41,8 @@ const CLAUSES = [
 // repetition reads like intentional boilerplate.
 const PREFIXES = ["", "Med forbehold om foregående ledd: ", "Uten hensyn til ovenstående: "];
 
-// 72 paragraphs: a full legitimate read takes ~80s at READ_PX_PER_S.
-const PARAGRAPH_COUNT = 72;
+// 18 paragraphs: a full legitimate read takes ~20s at READ_PX_PER_S.
+const PARAGRAPH_COUNT = 18;
 
 const PARAGRAPHS = Array.from({ length: PARAGRAPH_COUNT }, (_, i) => {
   const major = Math.floor(i / 3) + 1;
@@ -53,7 +53,7 @@ const PARAGRAPHS = Array.from({ length: PARAGRAPH_COUNT }, (_, i) => {
 });
 
 // The decoy checkbox sits in the middle of the wall of text.
-const DECOY_AFTER = 37;
+const DECOY_AFTER = 9;
 const DECOY_REF = PARAGRAPHS[DECOY_AFTER].number;
 // The closing paragraph is numbered past the end, like a real appendix.
 const FINAL_REF = `§${PARAGRAPHS.length}`;
@@ -153,7 +153,6 @@ function TinyBox({ checked, onToggle }: { checked: boolean; onToggle: () => void
 export function TermsStep({ next, restart }: StepProps) {
   const [accepted, setAccepted] = useState(false);
   const [decoy, setDecoy] = useState(false);
-  const [newsletters, setNewsletters] = useState(14);
   const [notRead, setNotRead] = useState(false);
   const { boxRef, readPercent, readAll, tooFastWpm, tooFast } = useReadingSpeedLimit();
 
@@ -234,8 +233,9 @@ export function TermsStep({ next, restart }: StepProps) {
 
         <div className="flex gap-2 text-sm text-ink">
           {/* Confirmshaming: "unchecking" just signs you up for more. */}
-          <TinyBox checked onToggle={() => setNewsletters((n) => n + 1)} />
-          <span>Ja takk, send meg {newsletters} nyhetsbrev daglig</span>
+          {/* Pre-ticked and can't be unticked. */}
+          <TinyBox checked onToggle={() => {}} />
+          <span>Send meg nyhetsbrev daglig</span>
         </div>
 
         {/* Equal, ordinary buttons, both inert until the text has been read. */}
