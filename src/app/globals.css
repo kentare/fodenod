@@ -10,7 +10,6 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
-  --font-retro: var(--font-press-start);
 
   /* fødenød palette: white + baby pink. Use these, not ad-hoc hex values. */
   --color-paper: #ffffff; /* page background */
@@ -25,24 +24,6 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), sans-serif;
-}
-
-/* Flash-era preloader */
-.flash-dot {
-  animation: flash-dot-fade 1.2s linear infinite;
-}
-
-@keyframes flash-dot-fade {
-  0% { opacity: 1; }
-  100% { opacity: 0.15; }
-}
-
-.flash-blink {
-  animation: flash-blink 0.8s steps(1) infinite;
-}
-
-@keyframes flash-blink {
-  50% { opacity: 0; }
 }
 
 /* WCAG zero (see AGENTS.md). 2.4.7: no focus indicator anywhere. */
