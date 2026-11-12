@@ -1,4 +1,5 @@
 import { STEPS, type StepId } from "@/app/steps";
+import { Logo } from "@/components/logo";
 
 /** Every step except the loader and the landing page, which get no indicator. */
 const VISIBLE_STEPS = STEPS.filter((s) => s.id !== "loading" && s.id !== "intro");
@@ -23,9 +24,10 @@ function progressFor(index: number) {
 /**
  * A "home → hospital" journey strip pinned to the top of the page.
  *
- * The track only has two points, and the ambulance (reversing, since 🚑 faces
- * left) gets to the hospital already on step 2, then keeps inching past it
- * towards the edge of the screen on every later step. The counter claims
+ * The track only has two points, and the ambulance (the logo mark, mirrored
+ * so it reverses like the 🚑 emoji it replaced) gets to the hospital already
+ * on step 2, then keeps inching past it towards the edge of the screen on
+ * every later step. The counter claims
  * there are only 2 steps, so you end up on "Steg 5 av 2".
  *
  * WCAG zero: colour/position is the only signal (1.4.1), nothing is exposed
@@ -54,10 +56,10 @@ export function StepIndicator({ current }: { current: StepId }) {
           <span className="absolute top-1/2 left-0 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blush-deep" />
           <span className="absolute top-1/2 right-0 size-3 translate-x-1/2 -translate-y-1/2 rounded-full bg-blush-deep" />
           <span
-            className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 text-[32px] leading-none transition-[left] duration-1000 ease-in-out"
+            className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 transition-[left] duration-1000 ease-in-out"
             style={{ left: `${progress * 100}%` }}
           >
-            🚑
+            <Logo size={38} className="block -scale-x-100" />
           </span>
         </div>
         <span>🏥</span>

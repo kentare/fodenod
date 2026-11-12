@@ -7,7 +7,6 @@ import type { StepId } from "@/app/steps";
  */
 const PAPER = "var(--color-paper, #ffffff)";
 const BLUSH = "var(--color-blush, #f4a6c6)";
-const SOFT = "var(--color-blush-soft, #fbdce9)";
 const DEEP = "var(--color-blush-deep, #e27aa6)";
 
 /**
@@ -19,9 +18,9 @@ export function Logo({ size = 40, className }: { size?: number; className?: stri
   return (
     <svg
       aria-hidden
-      viewBox="0 0 64 50"
+      viewBox="0 0 64 52"
       width={size}
-      height={(size * 50) / 64}
+      height={(size * 52) / 64}
       className={className}
       fill="none"
       stroke={DEEP}
@@ -29,33 +28,32 @@ export function Logo({ size = 40, className }: { size?: number; className?: stri
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      {/* Siren light + its glow lines */}
-      <path d="M31 10.5V9a3 3 0 0 1 6 0v1.5" fill={DEEP} />
-      <path d="M34 2.5v-0.01M28.5 4.5l1 1M39.5 4.5l-1 1" strokeWidth={1.75} />
+      {/* Siren light and its glow rays */}
+      <path d="M28 9.5V8a3 3 0 0 1 6 0v1.5" fill={DEEP} />
+      <path d="M31 1.5v1.6M25.4 3.6l1.1 1.1M36.6 3.6l-1.1 1.1" strokeWidth={1.75} />
 
-      {/* Body: tall patient box, lower cab, round belly underneath */}
+      {/* Body: tall patient box, lower cab, and a round belly between the wheels */}
       <path
-        d="M4 15a4.5 4.5 0 0 1 4.5-4.5H38a4 4 0 0 1 4 4V21h7.5a2 2 0 0 1 1.6.8l5.4 7.2
-           a2 2 0 0 0 1 .7l1 .3a2.5 2.5 0 0 1 1.5 2.3V36a2.5 2.5 0 0 1-2.5 2.5H44
-           C44 48.5 22 48.5 22 38.5H8.5A4.5 4.5 0 0 1 4 34Z"
+        d="M4 14a4.5 4.5 0 0 1 4.5-4.5H36a4 4 0 0 1 4 4V20h7.2a2 2 0 0 1 1.6.8l5.6 7.4 2 .6
+           a2.5 2.5 0 0 1 1.8 2.4v2.3a2.5 2.5 0 0 1-2.5 2.5H48A15.5 12 0 0 1 17 36H8.5
+           A4.5 4.5 0 0 1 4 31.5Z"
         fill={BLUSH}
       />
 
-      {/* Belly highlight and navel */}
-      <path d="M27.5 42.5c2 1.6 4.6 2.4 7 2.4" stroke={SOFT} strokeWidth={1.75} />
-      <path d="M33 40.5a1 1 0 1 0 1-1" strokeWidth={1.5} />
+      {/* Navel */}
+      <path d="M36 41.2c.9.4 1.4 1.4 1 2.3" strokeWidth={1.6} />
 
       {/* Cab window */}
-      <path d="M45 24h4.2l4.3 5.8H45Z" fill={PAPER} strokeWidth={1.75} />
+      <path d="M43 23h4l4.3 5.8H43Z" fill={PAPER} strokeWidth={1.75} />
 
       {/* Medical cross */}
-      <path d="M20.5 16.5h4v4h4v4h-4v4h-4v-4h-4v-4h4Z" fill={PAPER} strokeWidth={1.5} />
+      <path d="M18 14.5h4v4h4v4h-4v4h-4v-4h-4v-4h4Z" fill={PAPER} strokeWidth={1.5} />
 
       {/* Wheels */}
-      <circle cx="16" cy="39.5" r="5" fill={PAPER} />
-      <circle cx="50" cy="39.5" r="5" fill={PAPER} />
-      <circle cx="16" cy="39.5" r="1.2" fill={DEEP} stroke="none" />
-      <circle cx="50" cy="39.5" r="1.2" fill={DEEP} stroke="none" />
+      <circle cx="12" cy="39.5" r="4.6" fill={PAPER} />
+      <circle cx="53" cy="39.5" r="4.6" fill={PAPER} />
+      <circle cx="12" cy="39.5" r="1.1" fill={DEEP} stroke="none" />
+      <circle cx="53" cy="39.5" r="1.1" fill={DEEP} stroke="none" />
     </svg>
   );
 }
