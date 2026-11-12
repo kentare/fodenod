@@ -8,7 +8,6 @@ import { StepIndicator } from "@/components/step-indicator";
 import { CheckoutStep } from "@/steps/checkout";
 import { EndStep } from "@/steps/end";
 import { PaymentStep } from "@/steps/payment";
-import { PregnantStep } from "@/steps/pregnant";
 import { RegisterStep } from "@/steps/register";
 import { TermsStep } from "@/steps/terms";
 import { TransportStep } from "@/steps/transport";
@@ -18,7 +17,6 @@ import { type FlowData, STEPS, type StepId, type StepProps } from "./steps";
 const SCREENS: Record<StepId, ComponentType<StepProps>> = {
   loading: LoadingStep,
   payment: PaymentStep,
-  pregnant: PregnantStep,
   terms: TermsStep,
   register: RegisterStep,
   verify: VerifyStep,

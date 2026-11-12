@@ -4,7 +4,6 @@ import type { TransportId } from "@/steps/transport-options";
 export const STEPS = [
   { id: "loading", label: "Loading screen" },
   { id: "payment", label: "Payment details" },
-  { id: "pregnant", label: "Are you the pregnant one?" },
   { id: "terms", label: "Terms & conditions" },
   { id: "register", label: "Registration (gravID)" },
   { id: "verify", label: "Pregnancy verification" },
