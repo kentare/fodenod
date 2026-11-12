@@ -3,6 +3,7 @@
 import { type ComponentType, useCallback, useState } from "react";
 import { DevPanel } from "@/components/dev-panel";
 import { LoadingStep } from "@/components/flash-loader";
+import { StepIndicator } from "@/components/step-indicator";
 import { CheckoutStep } from "@/steps/checkout";
 import { EndStep } from "@/steps/end";
 import { PaymentStep } from "@/steps/payment";
@@ -60,6 +61,7 @@ export default function Home() {
         data={data}
         setData={setData}
       />
+      <StepIndicator current={step} />
       <DevPanel current={step} onJump={jump} />
     </>
   );
