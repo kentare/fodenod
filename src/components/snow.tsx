@@ -13,7 +13,7 @@ const MAX_FILL = 0.7;
  * second. It tapers off as the pile grows (see `fillRate`): about 17% covered
  * after one minute, ~27% after two, ~43% after five.
  */
-const BASE_RATE = 0.0037;
+const BASE_RATE = 0.0018;
 /** Share of each landing that settles evenly everywhere instead of at the landing spot. */
 const POWDER_SHARE = 0.5;
 /** Neighbouring columns may differ by this much (px) before the steeper one slumps. */
@@ -126,7 +126,7 @@ export function Snow() {
         x: rand(0, width),
         y: rand(-40, -4),
         r,
-        vy: 22 + r * rand(9, 16), // bigger flakes fall a bit faster
+        vy: 12 + r * rand(5, 9), // bigger flakes fall a bit faster
         phase: rand(0, Math.PI * 2),
         sway: rand(6, 22),
         swaySpeed: rand(0.4, 1.2),
