@@ -23,6 +23,16 @@ Fail as many WCAG success criteria as possible, on every screen. Examples alread
 
 Ideas for new screens: `div`s instead of buttons (no keyboard access), colour as the only signal, unlabeled inputs, placeholder text as labels, timeouts, moving targets, icons without alt text, and important text inside images.
 
+### Visual style: consistent, minimal, white + baby pink
+
+Every screen shares one look. The bad experience comes from behaviour and accessibility, not from clashing visuals. A clean, calm, "premium" surface makes the hostility funnier.
+
+- **Colours:** only the palette tokens in `src/app/globals.css`, used as Tailwind classes (`bg-paper`, `bg-blush`, `bg-blush-soft`, `border-blush-deep`, `text-ink`, `text-ink-faint`, …). White page, baby pink accents. No other hues, no gradients, no dark backgrounds. Error red is allowed only as a faint tint that's hard to tell apart from the pink.
+- **Type:** Geist sans only (`font-sans`, the default). A light weight for large headings, small sizes everywhere else. No Comic Sans, pixel, serif or Impact fonts.
+- **Shapes:** generous white space, centred single-column layouts, rounded-full pills and rounded-2xl cards, 1px borders, no drop shadows, no bevels, no retro chrome (no fake Windows dialogs or receipts).
+- **Emoji:** fine as content (e.g. the verification grid), not as decoration.
+- **Make minimalism hostile:** pink-on-white low contrast, ghost buttons that look like plain text, the wrong action as the filled pink "primary" pill, icon-only controls with no labels, hidden affordances, tiny fine print.
+
 ### Hard limits (don't cross these)
 
 1. **The flow must stay completable** with a mouse on a desktop browser. Annoying is good; impossible is not.
