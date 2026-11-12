@@ -400,7 +400,17 @@ export function RegisterStep({ next, setData }: StepProps) {
             🎙️
           </div>
           <p className="text-lg font-light text-blush-deep">Tale-til-tekst har startet</p>
-          <p className="h-5 max-w-[80vw] truncate text-sm text-ink">{heard}</p>
+          {/* Live transcript (interim results), plus what will land in the field. */}
+          <div className="flex min-h-24 w-[min(560px,90vw)] flex-col items-center justify-center gap-2 rounded-2xl border border-blush-soft bg-paper px-6 py-4 text-center">
+            {heard ? (
+              <>
+                <p className="text-2xl font-light break-words text-ink">{heard}</p>
+                <p className="text-sm text-blush-deep">→ {dictationToText(heard)}</p>
+              </>
+            ) : (
+              <p className="text-2xl font-light text-ink-faint">Snakk nå…</p>
+            )}
+          </div>
           <FakeButton
             onClick={() => stopRef.current?.()}
             className="rounded-full border border-blush-deep px-8 py-2 text-sm text-blush-deep"
