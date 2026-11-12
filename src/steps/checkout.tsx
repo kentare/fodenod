@@ -178,13 +178,13 @@ export function CheckoutStep({ next, data, setData, goTo }: StepProps) {
           <h1 className="text-3xl font-light tracking-tight text-blush-deep">
             Kasse
           </h1>
-          <span className="rounded-full bg-blush-soft px-3 py-1 text-[11px] tabular-nums">
+          <span className="rounded-full bg-blush-soft px-3 py-1 text-[13px] tabular-nums">
             Tilbudet utløper om 0:{String(seconds).padStart(2, "0")}
           </span>
         </div>
 
         <div className="flex flex-col gap-2">
-          <h2 className="text-[10px] uppercase tracking-widest text-ink-faint">
+          <h2 className="text-[12px] uppercase tracking-widest text-ink-faint">
             Anbefalt for deg
           </h2>
           {ADDONS.map((a) => (
@@ -209,7 +209,7 @@ export function CheckoutStep({ next, data, setData, goTo }: StepProps) {
 
         <div className="flex flex-col gap-2">
           <div className="flex items-baseline justify-between">
-            <h2 className="text-[10px] uppercase tracking-widest text-ink-faint">
+            <h2 className="text-[12px] uppercase tracking-widest text-ink-faint">
               Driks til sjåføren
             </h2>
             <span className="text-sm tabular-nums">{tip} %</span>
@@ -222,7 +222,7 @@ export function CheckoutStep({ next, data, setData, goTo }: StepProps) {
             onChange={(e) => setTip(Number(e.target.value))}
             className="h-1 w-full appearance-none rounded-full bg-blush-soft [&::-moz-range-thumb]:h-3 [&::-moz-range-thumb]:w-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-blush [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blush"
           />
-          <span className="text-[10px] text-ink-faint">{tipShame(tip)}</span>
+          <span className="text-[12px] text-ink-faint">{tipShame(tip)}</span>
         </div>
 
         <div className="flex flex-col gap-4 rounded-2xl border border-blush-soft bg-paper p-5">
@@ -237,12 +237,12 @@ export function CheckoutStep({ next, data, setData, goTo }: StepProps) {
             ))}
           </ul>
           <div className="flex flex-col items-center border-t border-blush-soft pt-4">
-            <span className="text-[10px] text-ink-faint">kun</span>
+            <span className="text-[12px] text-ink-faint">kun</span>
             <span className="text-4xl font-light tabular-nums text-blush-deep">
               {formatNok(monthly)}
               <span className="text-sm text-ink">/mnd*</span>
             </span>
-            <span className="mt-1 flex gap-2 text-[10px] tabular-nums text-ink-faint">
+            <span className="mt-1 flex gap-2 text-[12px] tabular-nums text-ink-faint">
               <span className="line-through">{formatNok(total * 1.6)}</span>
               <span>totalt {formatNok(total)}</span>
             </span>
@@ -260,7 +260,7 @@ export function CheckoutStep({ next, data, setData, goTo }: StepProps) {
             spellCheck={false}
             className="w-full rounded-full border border-blush bg-blush-soft px-4 py-2 text-sm font-light tracking-widest text-ink placeholder:tracking-normal placeholder:text-ink-faint"
           />
-          <span className="px-4 text-[9px] text-ink-faint">
+          <span className="px-4 text-[10px] text-ink-faint">
             Påkrevd. Du fikk den tidligere. Vi kan ikke sende den på nytt.
           </span>
         </div>
@@ -274,18 +274,18 @@ export function CheckoutStep({ next, data, setData, goTo }: StepProps) {
             Legg til flere tillegg
           </FakeButton>
           {upsellNote && (
-            <span className="text-center text-[11px]">{upsellNote}</span>
+            <span className="text-center text-[13px]">{upsellNote}</span>
           )}
-          <FakeButton onClick={pay} className="text-[10px] text-ink">
+          <FakeButton onClick={pay} className="text-[12px] text-ink">
             fullfør betaling
           </FakeButton>
           {/* WCAG 3.3.1: vague, faint, and red only in theory. */}
-          <span className="h-3 text-center text-[10px] text-[#ea8cad]">
+          <span className="h-3 text-center text-[12px] text-[#ea8cad]">
             {gravIdError && "Ugyldig gravID. Eller gyldig, men feil."}
           </span>
         </div>
 
-        <p className="text-center text-[9px] leading-snug text-ink-faint">
+        <p className="text-center text-[10px] leading-snug text-ink-faint">
           *Delbetaling over {MONTHS} måneder, effektiv rente 29,9 %. Førpris er
           en pris vi kunne ha tatt. Forhåndsbelastningen refunderes ikke,
           uansett hvilken transport du velger senere. Beløpet trekkes automatisk

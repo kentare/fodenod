@@ -263,7 +263,7 @@ export function VerifyStep({ next }: StepProps) {
       </h1>
       <div className="w-[362px] rounded-2xl border border-blush-soft bg-paper p-5">
         {/* WCAG 1.4.3: instructions in barely-there pink. */}
-        <p className="mb-3 text-[10px] leading-snug text-ink-faint">
+        <p className="mb-3 text-[12px] leading-snug text-ink-faint">
           Hold magen foran kameraet. Siden går videre av seg selv når vi er
           fornøyde.
         </p>
@@ -293,7 +293,7 @@ export function VerifyStep({ next }: StepProps) {
               {STATUS_TEXT[status]}
             </span>
           ) : (
-            <span className="text-[11px] font-light text-ink-faint">
+            <span className="text-[13px] font-light text-ink-faint">
               {STATUS_TEXT[status]}
             </span>
           )}

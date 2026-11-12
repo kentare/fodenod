@@ -143,7 +143,7 @@ function TinyBox({ checked, onToggle }: { checked: boolean; onToggle: () => void
   return (
     <div
       onClick={onToggle}
-      className="mt-[4px] flex h-[14px] w-[14px] shrink-0 items-center justify-center rounded-[3px] border border-blush bg-paper text-[11px] leading-none text-ink"
+      className="mt-[4px] flex h-[14px] w-[14px] shrink-0 items-center justify-center rounded-[3px] border border-blush bg-paper text-[13px] leading-none text-ink"
     >
       {checked ? "✗" : ""}
     </div>
@@ -175,14 +175,14 @@ export function TermsStep({ next, restart }: StepProps) {
       className="flex min-h-screen flex-col items-center px-4 py-16 font-sans text-ink"
     >
       <div className="flex w-[min(480px,100%)] flex-col gap-4">
-        <p className="text-center text-[8px] uppercase tracking-[0.3em] text-ink-faint">
+        <p className="text-center text-[9px] uppercase tracking-[0.3em] text-ink-faint">
           Fødenød AS · Standardvilkår for akutt befordring · rev. 47.3b
         </p>
         <div className="flex flex-col gap-1 text-center">
           <h1 className="text-4xl font-extralight tracking-tight text-blush-deep">
             Vilkår og betingelser
           </h1>
-          <p className="text-[9px] text-ink-faint">
+          <p className="text-[10px] text-ink-faint">
             Gjeldende fra i går. Estimert lesetid: 4 t 12 min.
           </p>
         </div>

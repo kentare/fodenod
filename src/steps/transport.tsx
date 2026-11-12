@@ -46,7 +46,7 @@ export function TransportStep({ next, setData }: StepProps) {
           <h1 className="text-3xl font-light tracking-tight text-blush-deep">
             Velg transport
           </h1>
-          <span className="text-[10px] text-ink-faint">Til: Sykehuset</span>
+          <span className="text-[12px] text-ink-faint">Til: Sykehuset</span>
         </div>
 
         <div className="flex flex-col gap-2">
@@ -64,13 +64,13 @@ export function TransportStep({ next, setData }: StepProps) {
               <span className="flex min-w-0 flex-1 flex-col">
                 <span className="text-sm">{t.name}</span>
                 {t.available ? (
-                  <span className="text-[10px] text-ink-faint">{t.eta}</span>
+                  <span className="text-[12px] text-ink-faint">{t.eta}</span>
                 ) : (
-                  <span className="text-[9px] text-ink-faint">
+                  <span className="text-[10px] text-ink-faint">
                     Ikke tilgjengelig
                   </span>
                 )}
-                <span className="text-[9px] text-ink-faint">{t.blurb}</span>
+                <span className="text-[10px] text-ink-faint">{t.blurb}</span>
               </span>
               <span className="shrink-0 text-xs tabular-nums">
                 {formatNok(t.price)}
@@ -86,9 +86,9 @@ export function TransportStep({ next, setData }: StepProps) {
           Bestill {choice.name}
         </FakeButton>
 
-        <p className="h-4 text-center text-[11px] text-ink-faint">{refusal}</p>
+        <p className="h-4 text-center text-[13px] text-ink-faint">{refusal}</p>
 
-        <p className="text-center text-[9px] leading-snug text-ink-faint">
+        <p className="text-center text-[10px] leading-snug text-ink-faint">
           Prisene er estimater og kan endres underveis. Du har allerede betalt
           for {PRICIEST.name.toLowerCase()}. Ingen refusjon.
         </p>

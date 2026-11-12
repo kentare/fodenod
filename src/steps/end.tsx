@@ -34,7 +34,7 @@ export function EndStep({ data, restart }: StepProps) {
       {/* A <marquee> in spirit; JSX doesn't type the real element anymore.
           Slow, smooth drift only: nothing here flashes (WCAG 2.3.1 hard limit). */}
       <style>{`@keyframes end-ticker { from { transform: translateX(100vw); } to { transform: translateX(-100%); } }`}</style>
-      <div className="mb-16 w-full overflow-hidden border-b border-blush-soft py-1.5 text-[10px] whitespace-nowrap text-ink-faint">
+      <div className="mb-16 w-full overflow-hidden border-b border-blush-soft py-1.5 text-[12px] whitespace-nowrap text-ink-faint">
         <div className="inline-block animate-[end-ticker_30s_linear_infinite]">
           Estimert ankomst: 3–40 virkedager · Takk for at du valgte fødenød · Vi
           gjør vårt beste (resultatene kan variere)
@@ -52,14 +52,14 @@ export function EndStep({ data, restart }: StepProps) {
 
         <section className="text-sm font-light">
           Estimert ankomst: 3–40 virkedager
-          <p className="mt-1 text-[9px] text-ink-faint">
+          <p className="mt-1 text-[10px] text-ink-faint">
             (lørdag, søndag, helligdager og fullmåne regnes ikke som virkedager)
           </p>
         </section>
 
         <section>
-          <p className="text-[10px]">Ordrenummer (oppgi ved alle henvendelser):</p>
-          <p className="mt-1 text-[11px] tracking-tighter break-all text-ink-faint italic">
+          <p className="text-[12px]">Ordrenummer (oppgi ved alle henvendelser):</p>
+          <p className="mt-1 text-[13px] tracking-tighter break-all text-ink-faint italic">
             {orderNumber}
           </p>
         </section>
@@ -88,7 +88,7 @@ export function EndStep({ data, restart }: StepProps) {
                 </FakeButton>
               ))}
             </div>
-            <div className="flex justify-between px-1 text-[8px] text-ink-faint">
+            <div className="flex justify-between px-1 text-[9px] text-ink-faint">
               <span>dårligst</span>
               <span>best?</span>
             </div>
@@ -110,13 +110,13 @@ export function EndStep({ data, restart }: StepProps) {
             Spor sjåføren
           </FakeButton>
           {trackTried && (
-            <p className="mt-3 text-[10px]">
+            <p className="mt-3 text-[12px]">
               Sporing er tilgjengelig fra og med 2031. Prøv å se ut av vinduet.
             </p>
           )}
         </section>
 
-        <div className="text-[10px] text-ink-faint">
+        <div className="text-[12px] text-ink-faint">
           {cancelTried ? (
             "Avbestilling må skje senest 72 timer før fødselen."
           ) : (
@@ -129,7 +129,7 @@ export function EndStep({ data, restart }: StepProps) {
 
       <FakeButton
         onClick={restart}
-        className="mt-16 self-start text-[9px] text-ink-faint"
+        className="mt-16 self-start text-[10px] text-ink-faint"
       >
         Start på nytt
       </FakeButton>

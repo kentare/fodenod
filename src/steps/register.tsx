@@ -335,18 +335,18 @@ export function RegisterStep({ next, data, setData, goTo }: StepProps) {
         <header className="mb-6 flex flex-col items-center gap-1">
           <div className="flex items-center gap-1 text-4xl font-extralight tracking-tight text-blush-deep">
             grav
-            <span className="rounded-full border border-blush-deep px-2 py-0.5 text-[11px] font-normal tracking-[0.2em]">
+            <span className="rounded-full border border-blush-deep px-2 py-0.5 text-[13px] font-normal tracking-[0.2em]">
               ID
             </span>
           </div>
-          <div className="text-[9px] text-ink-faint">Sikker innlogging*</div>
+          <div className="text-[10px] text-ink-faint">Sikker innlogging*</div>
         </header>
 
         {issuedId !== null && (
           // Shown above the (now locked) form. No copy button, and text
           // selection is off globally: pen and paper.
           <div className="flex flex-col items-center gap-2 rounded-2xl border border-blush-deep bg-paper px-4 py-4 text-center">
-            <span className="text-[10px] text-ink-faint">Din gravID:</span>
+            <span className="text-[12px] text-ink-faint">Din gravID:</span>
             {/* Clicking copies the ID, silently: no hint, no feedback. */}
             <span
               onClick={() => void navigator.clipboard?.writeText(issuedId).catch(() => {})}
@@ -354,7 +354,7 @@ export function RegisterStep({ next, data, setData, goTo }: StepProps) {
             >
               {issuedId}
             </span>
-            <span className="text-[10px] text-ink-faint">
+            <span className="text-[12px] text-ink-faint">
               Skriv den ned. Du trenger den senere.
             </span>
           </div>
@@ -395,10 +395,10 @@ export function RegisterStep({ next, data, setData, goTo }: StepProps) {
           </FakeButton>
         </div>
 
-        <span className="text-[8px] text-ink-faint">*ikke sikker</span>
+        <span className="text-[9px] text-ink-faint">*ikke sikker</span>
 
         {/* WCAG 3.3.1: an unhelpful error, below the fold of your attention. */}
-        <p className="h-4 text-center text-[10px] text-[#ea8cad]">
+        <p className="h-4 text-center text-[12px] text-[#ea8cad]">
           {failed && "Noe gikk galt. (feil 0x1F4A9)"}
         </p>
       </div>
@@ -410,7 +410,7 @@ export function RegisterStep({ next, data, setData, goTo }: StepProps) {
           data-above-snow
           className="fixed inset-0 z-[950] flex flex-col items-center justify-center gap-6 bg-paper/80"
         >
-          <div className="flex size-48 animate-pulse items-center justify-center rounded-full bg-blush-soft text-[96px] leading-none">
+          <div className="flex size-48 animate-pulse items-center justify-center rounded-full bg-blush-soft text-[110px] leading-none">
             🎙️
           </div>
           <p className="text-lg font-light text-blush-deep">Tale-til-tekst har startet</p>

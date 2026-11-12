@@ -47,14 +47,14 @@ export function StepIndicator({ current }: { current: StepId }) {
     >
       {/* White backing only behind the strip itself, so full-width content at
           the very top (e.g. the end screen's ticker) stays visible either side. */}
-      <div className="flex items-center gap-4 rounded-b-3xl bg-paper px-8 text-[20px] text-ink-faint">
+      <div className="flex items-center gap-4 rounded-b-3xl bg-paper px-8 text-[23px] text-ink-faint">
         <span className="mr-4 whitespace-nowrap">Steg {position} av 2</span>
         <span>🏠</span>
         <div className="relative h-0.5 w-[40vw] bg-blush">
           <span className="absolute top-1/2 left-0 size-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-blush-deep" />
           <span className="absolute top-1/2 right-0 size-3 translate-x-1/2 -translate-y-1/2 rounded-full bg-blush-deep" />
           <span
-            className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 text-[28px] leading-none transition-[left] duration-1000 ease-in-out"
+            className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 text-[32px] leading-none transition-[left] duration-1000 ease-in-out"
             style={{ left: `${progress * 100}%` }}
           >
             🚑

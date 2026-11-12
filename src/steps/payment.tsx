@@ -91,7 +91,7 @@ export function PaymentStep({ next }: StepProps) {
     >
       <div className="flex w-[min(400px,100%)] flex-col gap-6">
         {/* A very legitimate-looking address. */}
-        <div className="mx-auto flex max-w-full items-center gap-2 truncate rounded-full border border-blush-soft px-4 py-1 text-[10px] text-ink">
+        <div className="mx-auto flex max-w-full items-center gap-2 truncate rounded-full border border-blush-soft px-4 py-1 text-[12px] text-ink">
           <span>🔒</span>
           <span className="truncate">
             https://fodenod-betaling.secure-login.xyz/kasse/verifiser?ref=0&amp;sikker=ja
@@ -105,7 +105,7 @@ export function PaymentStep({ next }: StepProps) {
           <p className="mt-2 text-xs font-light">
             Vi trenger bare kortet ditt før vi vet om du trenger oss.
           </p>
-          <div className="mt-3 flex flex-wrap justify-center gap-2 text-[10px]">
+          <div className="mt-3 flex flex-wrap justify-center gap-2 text-[12px]">
             <span className="rounded-full bg-blush-soft px-3 py-1">🔒 100 % sikker ✓</span>
             <span className="rounded-full bg-blush-soft px-3 py-1">🔒 Kryptert*</span>
             <span className="rounded-full bg-blush-soft px-3 py-1">
@@ -246,7 +246,7 @@ export function PaymentStep({ next }: StepProps) {
           </FakeButton>
         </form>
 
-        <div className="flex flex-col gap-1 text-center text-[9px] text-ink-faint">
+        <div className="flex flex-col gap-1 text-center text-[10px] text-ink-faint">
           <p>*Kryptert med vårt eget kryptosystem. Nøkkelen er «fodenod123».</p>
           <p>
             **Betalingsrådet består av daglig leder og svogeren hans. Godkjenningen er
@@ -254,7 +254,7 @@ export function PaymentStep({ next }: StepProps) {
           </p>
         </div>
 
-        <p className="text-center text-[11px] text-ink">
+        <p className="text-center text-[13px] text-ink">
           Dette er en parodi. Ikke bruk ekte kortinformasjon. Ingenting lagres eller sendes.
         </p>
       </div>
@@ -280,7 +280,7 @@ function Field({ label, children }: { label: string; children: ReactNode }) {
     <label className="flex flex-col gap-1">
       <span
         data-label={label}
-        className="px-4 text-[11px] before:content-[attr(data-label)]"
+        className="px-4 text-[13px] before:content-[attr(data-label)]"
       />
       {children}
     </label>

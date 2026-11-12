@@ -18,6 +18,17 @@
   --color-blush-deep: #e27aa6; /* borders, headings, accents */
   --color-ink: #c45f8b; /* body text, ~3.9:1 on white (fails AA on purpose) */
   --color-ink-faint: #eba9c4; /* fine print, ~1.9:1 (barely visible) */
+
+  /* Text scale: Tailwind's defaults x1.15 (spacing is untouched). */
+  --text-xs: 0.8625rem;
+  --text-sm: 1.00625rem;
+  --text-base: 1.15rem;
+  --text-lg: 1.29375rem;
+  --text-xl: 1.4375rem;
+  --text-2xl: 1.725rem;
+  --text-3xl: 2.15625rem;
+  --text-4xl: 2.5875rem;
+  --text-5xl: 3.45rem;
 }
 
 body {
