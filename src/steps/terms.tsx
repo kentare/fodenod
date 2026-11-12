@@ -182,7 +182,7 @@ export function TermsStep({ next, restart }: StepProps) {
             Vilkår og betingelser
           </h1>
           <p className="text-[10px] text-ink-faint">
-            Gjeldende fra i går. Estimert lesetid: 4 t 12 min.
+            Estimert lesetid: 32 sekunder
           </p>
         </div>
 
