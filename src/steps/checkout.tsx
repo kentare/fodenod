@@ -77,7 +77,7 @@ function tipShame(percent: number) {
  * floor, fake urgency that quietly resets, and a filled pink decoy pill above
  * a ghost "pay" link.
  */
-export function CheckoutStep({ next, data }: StepProps) {
+export function CheckoutStep({ next, data, setData, goTo }: StepProps) {
   const [addons, setAddons] = useState<Record<AddonId, boolean>>({
     priority: true,
     insurance: true,
@@ -164,6 +164,16 @@ export function CheckoutStep({ next, data }: StepProps) {
       className="flex min-h-screen flex-col items-center px-6 py-16 text-ink"
     >
       <div className="flex w-full max-w-md flex-col gap-8">
+        {/* Back to gravID to look up the ID; its "Fortsett" brings you here. */}
+        <FakeButton
+          onClick={() => {
+            setData({ returnTo: "checkout" });
+            goTo("register");
+          }}
+          className="self-start rounded-full border border-blush-deep px-4 py-1.5 text-sm text-blush-deep"
+        >
+          ← Tilbake
+        </FakeButton>
         <div className="flex flex-col items-center gap-3">
           <h1 className="text-3xl font-light tracking-tight text-blush-deep">
             Kasse

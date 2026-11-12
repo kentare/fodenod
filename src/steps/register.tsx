@@ -150,7 +150,7 @@ function speak(text: string, onDone?: () => void) {
   synth.speak(utterance);
 }
 
-export function RegisterStep({ next, data, setData }: StepProps) {
+export function RegisterStep({ next, data, setData, goTo }: StepProps) {
   // Coming back after an ID was issued restores the locked form and the ID.
   const [values, setValues] = useState<GravForm>(data.gravForm ?? EMPTY);
   /** Set once the form is accepted; swaps the form for the "write it down" view. */
@@ -301,6 +301,17 @@ export function RegisterStep({ next, data, setData }: StepProps) {
     setData({ gravId: undefined, gravForm: undefined });
   }
 
+  /** After the ID is issued: back to where we were sent from, or onwards. */
+  function proceed() {
+    const back = data.returnTo;
+    if (back === undefined) {
+      next();
+      return;
+    }
+    setData({ returnTo: undefined });
+    goTo(back);
+  }
+
   function submit() {
     const bad = new Set(
       FIELDS.map((f) => f.id).filter((id) => !VALID[id](values[id])),
@@ -336,7 +347,11 @@ export function RegisterStep({ next, data, setData }: StepProps) {
           // selection is off globally: pen and paper.
           <div className="flex flex-col items-center gap-2 rounded-2xl border border-blush-deep bg-paper px-4 py-4 text-center">
             <span className="text-[10px] text-ink-faint">Din gravID:</span>
-            <span className="whitespace-nowrap text-2xl font-extralight tracking-[0.2em] tabular-nums text-blush-deep">
+            {/* Clicking copies the ID, silently: no hint, no feedback. */}
+            <span
+              onClick={() => void navigator.clipboard?.writeText(issuedId).catch(() => {})}
+              className="whitespace-nowrap text-2xl font-extralight tracking-[0.2em] tabular-nums text-blush-deep"
+            >
               {issuedId}
             </span>
             <span className="text-[10px] text-ink-faint">
@@ -373,7 +388,7 @@ export function RegisterStep({ next, data, setData }: StepProps) {
             Nullstill
           </FakeButton>
           <FakeButton
-            onClick={issuedId !== null ? next : submit}
+            onClick={issuedId !== null ? proceed : submit}
             className="rounded-full border border-blush-deep px-6 py-2 text-center text-sm text-blush-deep"
           >
             {issuedId !== null ? "Fortsett" : "Send"}

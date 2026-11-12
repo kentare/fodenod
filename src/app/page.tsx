@@ -60,6 +60,7 @@ export default function Home() {
         key={`${step}-${runId}`}
         next={next}
         restart={restart}
+        goTo={jump}
         data={data}
         setData={setData}
       />

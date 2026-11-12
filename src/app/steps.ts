@@ -25,6 +25,8 @@ export type FlowData = {
   gravId?: string;
   /** The gravID answers, kept so revisiting the step doesn't wipe them. */
   gravForm?: GravForm;
+  /** Set when a step sends you back to an earlier one; "Fortsett" returns here. */
+  returnTo?: StepId;
   transport?: TransportId;
 };
 
@@ -33,6 +35,8 @@ export type StepProps = {
   next: () => void;
   /** Throw everything away and start over from the loading screen. */
   restart: () => void;
+  /** Jump straight to a step (it remounts fresh; flow data is kept). */
+  goTo: (step: StepId) => void;
   data: FlowData;
   setData: (patch: Partial<FlowData>) => void;
 };
