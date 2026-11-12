@@ -49,7 +49,7 @@ The payment step looks like a real card form, so real people might type real det
 
 ### Steps
 
-The flow: loading → payment details → T&C → gravID registration → pregnancy verification → checkout → transport → end.
+The flow: loading → landing page → payment details → T&C → gravID registration → pregnancy verification → checkout → transport → end.
 
 - `src/app/steps.ts`: step order, shared `FlowData`, and the `StepProps` every step receives (`next`, `restart`, `data`, `setData`).
 - `src/steps/<step>.tsx`: one file per step. `src/app/page.tsx` maps step ids to components.

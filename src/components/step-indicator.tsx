@@ -1,7 +1,7 @@
 import { STEPS, type StepId } from "@/app/steps";
 
-/** Every step except the loader, which gets no indicator at all. */
-const VISIBLE_STEPS = STEPS.filter((s) => s.id !== "loading");
+/** Every step except the loader and the landing page, which get no indicator. */
+const VISIBLE_STEPS = STEPS.filter((s) => s.id !== "loading" && s.id !== "intro");
 
 /**
  * Where the ambulance parks on the last step, in track lengths from home.

@@ -4,7 +4,7 @@ import type { StepId } from "@/app/steps";
 const SHORTCUTS = [{ keys: "@", action: "starter tale-til-tekst" }] as const;
 
 export function ShortcutsBox({ current }: { current: StepId }) {
-  if (current === "loading") return null;
+  if (current === "loading" || current === "intro") return null;
 
   return (
     <div
