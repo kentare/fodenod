@@ -122,43 +122,39 @@ export function VerifyStep({ next }: StepProps) {
   };
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-[#c9c3b4] p-6 font-serif">
-      {/* Off-centre, fixed width, and a whiff of a 1998 dialog box. */}
-      <div className="ml-[17vw] mt-[9vh] w-[326px] -rotate-[0.7deg] border border-[#9d9584] bg-[#ece7dc] shadow-[3px_4px_0_#8a826f]">
-        <div className="flex items-center justify-between bg-gradient-to-r from-[#2b3f6b] to-[#8d9bb8] px-2 py-[3px] text-[10px] text-[#a9b6d4]">
-          <span>graviditetskontroll.exe</span>
-          {/* WCAG 2.5.3: the "close" button just gives you new pictures. */}
-          <FakeButton
-            onClick={reshuffle}
-            className="border border-[#d6d0c2] bg-[#ece7dc] px-1 leading-none text-[#b8b2a5]"
-          >
-            ×
-          </FakeButton>
-        </div>
+    <main className="flex min-h-screen flex-1 items-center justify-center bg-paper p-6 text-ink">
+      <div className="relative w-[326px] rounded-2xl border border-blush-soft bg-paper px-5 pt-6 pb-4">
+        {/* WCAG 2.5.3 + 4.1.2: an unlabeled "close" icon that just gives you new pictures. */}
+        <FakeButton
+          onClick={reshuffle}
+          className="absolute top-2 right-3 text-sm leading-none font-extralight text-ink-faint"
+        >
+          ×
+        </FakeButton>
 
-        <div className="px-3 pb-2 pt-3">
-          {/* WCAG 1.4.3: instructions in light grey on beige, mid-sentence italics. */}
-          <p className="text-[11px] leading-tight text-[#b1aa9b]">
+        <div className="pb-4">
+          {/* WCAG 1.4.3: pale pink instructions, mid-sentence italics. */}
+          <p className="text-[11px] leading-snug font-light">
             Velg alle bilder med en <i>gravid mage</i>. Klikk «Bekreft» når det
             ikke er flere igjen.
           </p>
-          <p className="mt-1 text-[8px] text-[#cbc5b8]">
+          <p className="mt-1 text-[8px] text-ink-faint">
             Forsøk {Math.min(attempts + 1, MERCY_ATTEMPT)} av 2
           </p>
         </div>
 
         {/* WCAG 1.1.1 + 1.4.1: unlabeled pictures; selection is a faint tint. */}
-        <div aria-hidden className="grid grid-cols-3 gap-[3px] px-3">
+        <div aria-hidden className="grid grid-cols-3 gap-1.5">
           {tiles.map((tile, i) => {
             const isSelected = selected.has(i);
             return (
               <div
                 key={`${attempts}-${i}`}
                 onClick={() => toggle(i)}
-                className={`flex aspect-square items-center justify-center overflow-hidden border ${
+                className={`flex aspect-square items-center justify-center overflow-hidden rounded-xl border ${
                   isSelected
-                    ? "border-[#d9d0c4] bg-[#e9e6d6] opacity-[0.88]"
-                    : "border-[#dcd5c8] bg-[#e5e1d6]"
+                    ? "border-blush bg-blush-soft opacity-[0.88]"
+                    : "border-blush-soft bg-blush-soft"
                 }`}
               >
                 <span
@@ -175,33 +171,32 @@ export function VerifyStep({ next }: StepProps) {
           })}
         </div>
 
-        <div className="mt-2 flex items-end justify-between px-3 pb-3">
-          <div className="flex gap-2 text-[9px] text-[#bdb6a8]">
-            <FakeButton onClick={reshuffle} className="underline">
-              ↻ nye bilder
+        <div className="mt-5 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            {/* The inviting primary pill throws away your selection. */}
+            <FakeButton
+              onClick={reshuffle}
+              className="rounded-full bg-blush px-4 py-1.5 text-[11px] text-paper"
+            >
+              nye bilder
             </FakeButton>
-            <FakeButton onClick={audio} className="underline">
-              🔊 lydversjon
+            <FakeButton onClick={audio} className="text-[9px] text-ink-faint">
+              lydversjon
             </FakeButton>
           </div>
-          {/* WCAG 2.5.8: tiny target, tucked in the corner, same colour as the box. */}
-          <FakeButton
-            onClick={confirm}
-            className="border border-[#cfc8b9] bg-gradient-to-b from-[#f2eee6] to-[#e2dccf] px-2 py-[1px] text-[10px] text-[#a8a192]"
-          >
+          {/* WCAG 2.5.8: tiny target, tucked in the corner, looks like plain text. */}
+          <FakeButton onClick={confirm} className="text-[10px] text-ink-faint">
             Bekreft
           </FakeButton>
         </div>
 
-        <div className="h-5 px-3 pb-2 text-[10px]">
+        <div className="mt-2 h-4 text-[10px]">
           {verdict === "wrong" && (
-            <span className="text-[#d98c8c]">Feil. Prøv igjen.</span>
+            <span className="text-[#f3b9c6]">Feil. Prøv igjen.</span>
           )}
-          {verdict === "mercy" && (
-            <span className="text-[#9fb39a]">Greit nok. 🙄</span>
-          )}
+          {verdict === "mercy" && <span>Greit nok. 🙄</span>}
           {verdict === "speech" && (
-            <span className="text-[#bdb6a8]">
+            <span className="text-ink-faint">
               Lyd er ikke tilgjengelig. Prøv å lytte hardere.
             </span>
           )}

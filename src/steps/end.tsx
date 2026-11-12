@@ -29,121 +29,107 @@ export function EndStep({ data, restart }: StepProps) {
   return (
     <main
       aria-hidden
-      className="flex min-h-screen flex-col items-center bg-[#ffffcc] px-4 py-10 font-serif text-[#777755]"
+      className="flex min-h-screen flex-1 flex-col items-center bg-paper px-4 pt-10 pb-10 text-ink"
     >
-      {/* A <marquee> in spirit; JSX doesn't type the real element anymore. */}
+      {/* A <marquee> in spirit; JSX doesn't type the real element anymore.
+          Slow, smooth drift only: nothing here flashes (WCAG 2.3.1 hard limit). */}
       <style>{`@keyframes end-ticker { from { transform: translateX(100vw); } to { transform: translateX(-100%); } }`}</style>
-      <div className="mb-6 w-full overflow-hidden whitespace-nowrap bg-[#ffff99] py-1 text-xs text-[#bbbb66]">
-        <div className="inline-block animate-[end-ticker_18s_linear_infinite]">
-          Estimert ankomst: 3–40 virkedager *** Takk for at du valgte fødenød
-          *** Vi gjør vårt beste (resultatene kan variere)
+      <div className="mb-16 w-full overflow-hidden border-b border-blush-soft py-1.5 text-[10px] whitespace-nowrap text-ink-faint">
+        <div className="inline-block animate-[end-ticker_30s_linear_infinite]">
+          Estimert ankomst: 3–40 virkedager · Takk for at du valgte fødenød · Vi
+          gjør vårt beste (resultatene kan variere)
         </div>
       </div>
 
-      <table className="w-[min(560px,92vw)] border-4 border-double border-[#cccc88] bg-[#fffff0]">
-        <tbody>
-          <tr>
-            <td className="border-b border-[#eeeeaa] p-4 text-center">
-              <p className="text-xs italic">
-                Hei {data.name ?? "{{fornavn}}"},
-              </p>
-              <h1 className="mt-2 text-3xl text-[#c0c070]">
-                Gratulerer! 🎉 Din {transport.name.toLowerCase()}{" "}
-                {transport.emoji} er bestilt.
-              </h1>
-            </td>
-          </tr>
-          <tr>
-            <td className="border-b border-[#eeeeaa] p-4 text-sm">
-              <b>Estimert ankomst:</b> 3–40 virkedager
-              <br />
-              <span className="text-[9px]">
-                (lørdag, søndag, helligdager og fullmåne regnes ikke som
-                virkedager)
-              </span>
-            </td>
-          </tr>
-          <tr>
-            <td className="border-b border-[#eeeeaa] p-4">
-              <p className="text-[10px]">
-                Ordrenummer (oppgi ved alle henvendelser):
-              </p>
-              <p className="break-all text-[11px] italic tracking-tighter text-[#d8d8a8]">
-                {orderNumber}
-              </p>
-            </td>
-          </tr>
-          <tr>
-            <td className="border-b border-[#eeeeaa] p-4 text-center">
-              <p className="text-xs">Hvordan var din opplevelse?</p>
-              {/* Backwards: leftmost star is the worst, and highlighting fills
-                  from the right. Yellow on yellow, so colour is the only cue. */}
-              <div
-                className="mt-1 flex justify-center gap-1 text-3xl"
-                onMouseLeave={() => setHovered(null)}
-              >
-                {Array.from({ length: STARS }, (_, i) => (
-                  <FakeButton
-                    key={i}
-                    onMouseEnter={() => setHovered(i)}
-                    onClick={() => setRated(true)}
-                    className={
-                      hovered !== null && i >= hovered
-                        ? "text-[#f5e66b]"
-                        : "text-[#f0f0c0]"
-                    }
-                  >
-                    ★
-                  </FakeButton>
-                ))}
-              </div>
-              <div className="flex justify-between px-24 text-[8px]">
-                <span>dårligst</span>
-                <span>best?</span>
-              </div>
-              {rated && (
-                <p className="mt-2 text-xs text-[#aa8844]">
-                  Takk for din 1-stjernes vurdering! Vi beklager at du ikke var
-                  fornøyd. Vurderingen er videresendt til jordmoren din.
-                </p>
-              )}
-            </td>
-          </tr>
-          <tr>
-            <td className="p-4 text-center">
-              <FakeButton
-                onClick={() => setTrackTried(true)}
-                className="mx-auto w-fit border-4 border-[#ddddaa] [border-style:outset] bg-[#eeeebb] px-8 py-3 text-lg text-[#999966]"
-              >
-                📍 Spor sjåføren
-              </FakeButton>
-              {trackTried && (
-                <p className="mt-2 text-[10px]">
-                  Sporing er tilgjengelig fra og med 2031. Prøv å se ut av
-                  vinduet.
-                </p>
-              )}
-            </td>
-          </tr>
-        </tbody>
-      </table>
+      <div className="flex w-[min(480px,92vw)] flex-col items-center gap-12 text-center">
+        <section>
+          <p className="text-xs">Hei {data.name ?? "{{fornavn}}"},</p>
+          <h1 className="mt-3 text-3xl leading-tight font-extralight text-blush-deep">
+            Gratulerer! Din {transport.name.toLowerCase()} {transport.emoji} er
+            bestilt.
+          </h1>
+        </section>
 
-      <div className="mt-6 text-[10px]">
-        {cancelTried ? (
-          "Avbestilling må skje senest 72 timer før fødselen."
-        ) : (
+        <section className="text-sm font-light">
+          Estimert ankomst: 3–40 virkedager
+          <p className="mt-1 text-[9px] text-ink-faint">
+            (lørdag, søndag, helligdager og fullmåne regnes ikke som virkedager)
+          </p>
+        </section>
+
+        <section>
+          <p className="text-[10px]">Ordrenummer (oppgi ved alle henvendelser):</p>
+          <p className="mt-1 text-[11px] tracking-tighter break-all text-ink-faint italic">
+            {orderNumber}
+          </p>
+        </section>
+
+        <section>
+          <p className="text-xs">Hvordan var din opplevelse?</p>
+          {/* Backwards: leftmost star is the worst, and highlighting fills
+              from the right. Pink on pink, so colour is the only cue. */}
+          <div className="mx-auto mt-2 w-fit">
+            <div
+              className="flex gap-1 text-3xl"
+              onMouseLeave={() => setHovered(null)}
+            >
+              {Array.from({ length: STARS }, (_, i) => (
+                <FakeButton
+                  key={i}
+                  onMouseEnter={() => setHovered(i)}
+                  onClick={() => setRated(true)}
+                  className={
+                    hovered !== null && i >= hovered
+                      ? "text-blush"
+                      : "text-blush-soft"
+                  }
+                >
+                  ★
+                </FakeButton>
+              ))}
+            </div>
+            <div className="flex justify-between px-1 text-[8px] text-ink-faint">
+              <span>dårligst</span>
+              <span>best?</span>
+            </div>
+          </div>
+          {rated && (
+            <p className="mt-3 text-xs">
+              Takk for din 1-stjernes vurdering! Vi beklager at du ikke var
+              fornøyd. Vurderingen er videresendt til jordmoren din.
+            </p>
+          )}
+        </section>
+
+        <section>
+          {/* The big inviting pill does nothing useful. */}
           <FakeButton
-            onClick={() => setCancelTried(true)}
-            className="inline text-[#9999ff] underline"
+            onClick={() => setTrackTried(true)}
+            className="mx-auto w-fit rounded-full bg-blush px-10 py-3 text-sm tracking-wide text-paper"
           >
-            Har du allerede født? Avbestill her
+            Spor sjåføren
           </FakeButton>
-        )}
+          {trackTried && (
+            <p className="mt-3 text-[10px]">
+              Sporing er tilgjengelig fra og med 2031. Prøv å se ut av vinduet.
+            </p>
+          )}
+        </section>
+
+        <div className="text-[10px] text-ink-faint">
+          {cancelTried ? (
+            "Avbestilling må skje senest 72 timer før fødselen."
+          ) : (
+            <FakeButton onClick={() => setCancelTried(true)} className="inline">
+              Har du allerede født? Avbestill her
+            </FakeButton>
+          )}
+        </div>
       </div>
 
       <FakeButton
         onClick={restart}
-        className="mt-16 self-start text-[9px] text-[#ccccaa]"
+        className="mt-16 self-start text-[9px] text-ink-faint"
       >
         Start på nytt
       </FakeButton>

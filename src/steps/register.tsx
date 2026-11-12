@@ -11,9 +11,12 @@ const PHONE_MAX = 99_999_999;
 /** Anything below this has fewer than 8 digits (even though we pad it to look fine). */
 const PHONE_MIN_VALID = 10_000_000;
 
-/** Base border colour for every field. Invalid fields get an almost identical red (WCAG 1.4.1). */
-const RED = "border-[#d63a3a]";
-const RED_ER = "border-[#c42121]";
+/**
+ * Base border colour for every field. Invalid fields get a pink with the
+ * faintest hint of red, so colour is the only (barely visible) signal (WCAG 1.4.1).
+ */
+const OK = "border-blush";
+const BAD = "border-[#f6bccb]";
 
 /** Each digit picker gets its own order, so muscle memory never helps. */
 function shuffledDigitOrders() {
@@ -35,7 +38,7 @@ export function RegisterStep({ next, setData }: StepProps) {
   const [invalid, setInvalid] = useState<ReadonlySet<string>>(new Set());
   const [failed, setFailed] = useState(false);
 
-  const border = (field: string) => (invalid.has(field) ? RED_ER : RED);
+  const border = (field: string) => (invalid.has(field) ? BAD : OK);
 
   function setDigit(index: number, digit: string) {
     setFnr((current) => current.map((d, i) => (i === index ? digit : d)));
@@ -70,85 +73,83 @@ export function RegisterStep({ next, setData }: StepProps) {
   return (
     <main
       aria-hidden
-      className="flex min-h-screen flex-1 flex-col items-center justify-center bg-[#efe8d6] bg-[radial-gradient(#d9cfb4_1px,transparent_1px)] [background-size:9px_9px] p-6 font-[Georgia,serif]"
+      className="flex min-h-screen flex-1 flex-col items-center justify-center bg-paper p-6 text-ink"
     >
-      {failed && (
-        <p className="mb-3 text-[11px] italic text-[#b08a8a]">
-          Noe gikk galt. (feil 0x1F4A9)
-        </p>
-      )}
-
-      <div className="w-[min(380px,92vw)] border border-[#7a6fae] bg-[#fdfcf7] shadow-[6px_6px_0_#7a6fae]">
-        <header className="flex items-end justify-between bg-gradient-to-b from-[#5b4b9a] to-[#3a2d6e] px-4 py-3 text-[#e9e4ff]">
-          <div className="text-3xl italic tracking-tight">
+      <div className="flex w-[min(340px,92vw)] flex-col gap-5">
+        <header className="mb-6 flex flex-col items-center gap-1">
+          <div className="flex items-center gap-1 text-4xl font-extralight tracking-tight text-blush-deep">
             grav
-            <span className="ml-0.5 inline-block -rotate-6 rounded-sm border-2 border-[#e9e4ff] px-1 text-xl not-italic font-bold">
+            <span className="rounded-full border border-blush-deep px-2 py-0.5 text-[11px] font-normal tracking-[0.2em]">
               ID
             </span>
           </div>
-          <div className="text-[10px] text-[#a99fd6]">Sikker innlogging*</div>
+          <div className="text-[9px] text-ink-faint">Sikker innlogging*</div>
         </header>
 
-        <div className="flex flex-col gap-4 px-4 py-5 text-[#9b94a8]">
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Fullt navn"
-            autoComplete="off"
-            spellCheck={false}
-            className={`w-full border-2 ${border("name")} bg-[#fffdf8] px-2 py-1 text-sm text-[#555] placeholder:text-[#d8d2c2]`}
-          />
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Fullt navn"
+          autoComplete="off"
+          spellCheck={false}
+          className={`w-full rounded-full border ${border("name")} bg-blush-soft px-4 py-2 text-sm font-light text-ink placeholder:text-ink-faint`}
+        />
 
-          <div>
-            <div className="mb-1 text-[9px] text-[#cfc8b6]">ddmmåå·iiikk</div>
-            <div className="flex gap-[2px]">
-              {orders.map((order, i) => (
-                <select
-                  key={i}
-                  value={fnr[i]}
-                  onChange={(e) => setDigit(i, e.target.value)}
-                  className={`w-[30px] appearance-none border ${border(`fnr-${i}`)} bg-[#fffdf8] py-1 text-center text-xs text-[#555]`}
-                >
-                  <option value="">–</option>
-                  {order.map((digit) => (
-                    <option key={digit} value={digit}>
-                      {digit}
-                    </option>
-                  ))}
-                </select>
-              ))}
-            </div>
-          </div>
-
-          <div className={`border ${border("phone")} px-2 py-2`}>
-            <input
-              type="range"
-              min={0}
-              max={PHONE_MAX}
-              value={phone}
-              onChange={(e) => setPhone(Number(e.target.value))}
-              className="w-full accent-[#d63a3a]"
-            />
-            <div className="text-right font-mono text-[7px] text-[#d8d2c2]">
-              {String(phone).padStart(8, "0")}
-            </div>
-          </div>
-
-          <FakeButton
-            onClick={reset}
-            className="mt-2 rounded-full bg-gradient-to-b from-[#7be05a] to-[#2f9e1a] py-4 text-center text-2xl font-black tracking-[0.2em] text-white shadow-[0_4px_0_#1f6e10] [text-shadow:1px_1px_0_#1f6e10] hover:brightness-110"
-          >
-            NULLSTILL
-          </FakeButton>
-
-          <div className="flex items-end justify-between">
-            <span className="text-[8px] text-[#d8d2c2]">*ikke sikker</span>
-            <FakeButton onClick={submit} className="text-[9px] text-[#bdb6c9]">
-              send
-            </FakeButton>
+        <div>
+          <div className="mb-1 pl-1 text-[9px] text-ink-faint">ddmmåå·iiikk</div>
+          <div className="flex justify-between">
+            {orders.map((order, i) => (
+              <select
+                key={i}
+                value={fnr[i]}
+                onChange={(e) => setDigit(i, e.target.value)}
+                className={`w-[27px] appearance-none rounded-lg border ${border(`fnr-${i}`)} bg-blush-soft py-1.5 text-center text-xs text-ink`}
+              >
+                <option value="">–</option>
+                {order.map((digit) => (
+                  <option key={digit} value={digit}>
+                    {digit}
+                  </option>
+                ))}
+              </select>
+            ))}
           </div>
         </div>
+
+        <div className={`rounded-full border ${border("phone")} px-4 pt-2 pb-1`}>
+          <input
+            type="range"
+            min={0}
+            max={PHONE_MAX}
+            value={phone}
+            onChange={(e) => setPhone(Number(e.target.value))}
+            className="h-px w-full appearance-none bg-blush [&::-moz-range-thumb]:size-3 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-0 [&::-moz-range-thumb]:bg-blush-deep [&::-webkit-slider-thumb]:size-3 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-blush-deep"
+          />
+          <div className="text-right text-[7px] tabular-nums text-ink-faint">
+            {String(phone).padStart(8, "0")}
+          </div>
+        </div>
+
+        {/* The one obvious, inviting button wipes the whole form. */}
+        <FakeButton
+          onClick={reset}
+          className="mt-6 rounded-full bg-blush py-4 text-center text-sm font-medium tracking-[0.35em] text-paper"
+        >
+          NULLSTILL
+        </FakeButton>
+
+        <div className="flex items-end justify-between">
+          <span className="text-[8px] text-ink-faint">*ikke sikker</span>
+          <FakeButton onClick={submit} className="text-[9px] text-ink-faint">
+            send
+          </FakeButton>
+        </div>
+
+        {/* WCAG 3.3.1: an unhelpful error, below the fold of your attention. */}
+        <p className="h-4 text-center text-[10px] text-[#f3b9c6]">
+          {failed && "Noe gikk galt. (feil 0x1F4A9)"}
+        </p>
       </div>
     </main>
   );
