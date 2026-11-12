@@ -17,6 +17,8 @@ export type StepId = (typeof STEPS)[number]["id"];
 /** Data collected along the way, shared between steps. */
 export type FlowData = {
   name?: string;
+  /** Issued on the gravID step; must be typed back in at checkout. */
+  gravId?: string;
   transport?: TransportId;
 };
 

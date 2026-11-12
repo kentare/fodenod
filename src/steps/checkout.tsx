@@ -51,6 +51,18 @@ const ADDONS: {
   },
 ];
 
+/**
+ * Forgiving comparison for a hand-copied gravID: case, spaces and dashes don't
+ * matter, and O/0 and I/L/1 count as the same character.
+ */
+function normalizeGravId(id: string) {
+  return id
+    .toUpperCase()
+    .replace(/[\s-]/g, "")
+    .replace(/O/g, "0")
+    .replace(/[IL]/g, "1");
+}
+
 function tipShame(percent: number) {
   if (percent >= 40) return "Sjåføren feller en tåre av glede.";
   if (percent >= 25) return "Helt OK, antar vi.";
@@ -65,7 +77,7 @@ function tipShame(percent: number) {
  * floor, fake urgency that quietly resets, and a filled pink decoy pill above
  * a ghost "pay" link.
  */
-export function CheckoutStep({ next }: StepProps) {
+export function CheckoutStep({ next, data }: StepProps) {
   const [addons, setAddons] = useState<Record<AddonId, boolean>>({
     priority: true,
     insurance: true,
@@ -74,6 +86,8 @@ export function CheckoutStep({ next }: StepProps) {
   const [tip, setTip] = useState(TIP_DEFAULT);
   const [seconds, setSeconds] = useState(OFFER_SECONDS);
   const [upsellNote, setUpsellNote] = useState<string | null>(null);
+  const [gravIdInput, setGravIdInput] = useState("");
+  const [gravIdError, setGravIdError] = useState(false);
 
   // Fake urgency: counts down, then silently starts over.
   useEffect(() => {
@@ -98,6 +112,16 @@ export function CheckoutStep({ next }: StepProps) {
     setUpsellNote(
       "Alle tillegg er lagt til igjen, og vi har rundet opp driksen. Flere tillegg kommer snart!",
     );
+  };
+
+  /** Pays only with the gravID from the registration step (or any, if none was issued). */
+  const pay = () => {
+    const entered = normalizeGravId(gravIdInput);
+    const ok =
+      entered !== "" &&
+      (data.gravId === undefined || entered === normalizeGravId(data.gravId));
+    setGravIdError(!ok);
+    if (ok) next();
   };
 
   const envFee = Math.max(
@@ -215,6 +239,22 @@ export function CheckoutStep({ next }: StepProps) {
           </div>
         </div>
 
+        {/* Placeholder as the only label; the hint is fine print (WCAG 3.3.2). */}
+        <div className="flex flex-col gap-2">
+          <input
+            type="text"
+            value={gravIdInput}
+            onChange={(e) => setGravIdInput(e.target.value)}
+            placeholder="gravID"
+            autoComplete="off"
+            spellCheck={false}
+            className="w-full rounded-full border border-blush bg-blush-soft px-4 py-2 text-sm font-light tracking-widest text-ink placeholder:tracking-normal placeholder:text-ink-faint"
+          />
+          <span className="px-4 text-[9px] text-ink-faint">
+            Påkrevd. Du fikk den tidligere. Vi kan ikke sende den på nytt.
+          </span>
+        </div>
+
         <div className="flex flex-col items-center gap-3">
           {/* The wrong action is the primary pill. */}
           <FakeButton
@@ -226,9 +266,13 @@ export function CheckoutStep({ next }: StepProps) {
           {upsellNote && (
             <span className="text-center text-[11px]">{upsellNote}</span>
           )}
-          <FakeButton onClick={next} className="text-[10px] text-ink">
+          <FakeButton onClick={pay} className="text-[10px] text-ink">
             fullfør betaling
           </FakeButton>
+          {/* WCAG 3.3.1: vague, faint, and red only in theory. */}
+          <span className="h-3 text-center text-[10px] text-[#ea8cad]">
+            {gravIdError && "Ugyldig gravID. Eller gyldig, men feil."}
+          </span>
         </div>
 
         <p className="text-center text-[9px] leading-snug text-ink-faint">

@@ -82,6 +82,16 @@ function heardAnAt(results: SpeechRecognitionResultList) {
   return false;
 }
 
+const ID_ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+/** A fresh `GRV-XXXX-XXXX` (A–Z, 0–9). Call from event handlers only, never during render. */
+function newGravId() {
+  const bytes = crypto.getRandomValues(new Uint8Array(8));
+  // 256 % 36 leaves a tiny bias towards the first letters; nobody will notice.
+  const chars = Array.from(bytes, (b) => ID_ALPHABET[b % ID_ALPHABET.length]);
+  return `GRV-${chars.slice(0, 4).join("")}-${chars.slice(4).join("")}`;
+}
+
 /** Held so Chrome can't garbage-collect an utterance before its `end` fires. */
 let currentUtterance: SpeechSynthesisUtterance | null = null;
 
@@ -123,8 +133,10 @@ function speak(text: string, onDone?: () => void) {
   synth.speak(utterance);
 }
 
-export function RegisterStep({ next }: StepProps) {
+export function RegisterStep({ next, setData }: StepProps) {
   const [values, setValues] = useState(EMPTY);
+  /** Set once the form is accepted; swaps the form for the "write it down" view. */
+  const [issuedId, setIssuedId] = useState<string | null>(null);
   // Only recomputed on "send", so fixed fields stay "wrong" until the next try.
   const [invalid, setInvalid] = useState<ReadonlySet<Field>>(new Set());
   const [failed, setFailed] = useState(false);
@@ -264,7 +276,9 @@ export function RegisterStep({ next }: StepProps) {
       FIELDS.map((f) => f.id).filter((id) => !VALID[id](values[id])),
     );
     if (bad.size === 0) {
-      next();
+      const gravId = newGravId();
+      setData({ gravId });
+      setIssuedId(gravId);
       return;
     }
     setInvalid(bad);
@@ -287,45 +301,66 @@ export function RegisterStep({ next }: StepProps) {
           <div className="text-[9px] text-ink-faint">Sikker innlogging*</div>
         </header>
 
-        {FIELDS.map(({ id, placeholder }) => (
-          <div key={id} className="relative">
-            <input
-              ref={id === "email" ? emailRef : undefined}
-              type="text"
-              value={values[id]}
-              onChange={(e) =>
-                setValues((v) => ({ ...v, [id]: e.target.value }))
-              }
-              placeholder={placeholder}
-              autoComplete="off"
-              spellCheck={false}
-              className={`w-full rounded-full border ${border(id)} bg-blush-soft px-4 py-2 text-sm font-light text-ink placeholder:text-ink-faint`}
-            />
+        {issuedId !== null ? (
+          // No copy button, and text selection is off globally: pen and paper.
+          <div className="flex flex-col items-center gap-3 text-center">
+            <span className="text-[10px] text-ink-faint">Din gravID:</span>
+            <span className="whitespace-nowrap text-3xl font-extralight tracking-[0.2em] tabular-nums text-blush-deep">
+              {issuedId}
+            </span>
+            <span className="text-[10px] text-ink-faint">
+              Skriv den ned. Du trenger den senere.
+            </span>
+            <FakeButton
+              onClick={next}
+              className="mt-6 rounded-full border border-blush-deep px-6 py-2 text-center text-sm text-blush-deep"
+            >
+              Fortsett
+            </FakeButton>
           </div>
-        ))}
+        ) : (
+          <>
+            {FIELDS.map(({ id, placeholder }) => (
+              <div key={id} className="relative">
+                <input
+                  ref={id === "email" ? emailRef : undefined}
+                  type="text"
+                  value={values[id]}
+                  onChange={(e) =>
+                    setValues((v) => ({ ...v, [id]: e.target.value }))
+                  }
+                  placeholder={placeholder}
+                  autoComplete="off"
+                  spellCheck={false}
+                  className={`w-full rounded-full border ${border(id)} bg-blush-soft px-4 py-2 text-sm font-light text-ink placeholder:text-ink-faint`}
+                />
+              </div>
+            ))}
 
-        {/* Two normal-sized pills; the filled, inviting one wipes the form. */}
-        <div className="mt-6 flex justify-center gap-3">
-          <FakeButton
-            onClick={reset}
-            className="rounded-full bg-blush px-6 py-2 text-center text-sm text-paper"
-          >
-            Nullstill
-          </FakeButton>
-          <FakeButton
-            onClick={submit}
-            className="rounded-full border border-blush-deep px-6 py-2 text-center text-sm text-blush-deep"
-          >
-            Send
-          </FakeButton>
-        </div>
+            {/* Two normal-sized pills; the filled, inviting one wipes the form. */}
+            <div className="mt-6 flex justify-center gap-3">
+              <FakeButton
+                onClick={reset}
+                className="rounded-full bg-blush px-6 py-2 text-center text-sm text-paper"
+              >
+                Nullstill
+              </FakeButton>
+              <FakeButton
+                onClick={submit}
+                className="rounded-full border border-blush-deep px-6 py-2 text-center text-sm text-blush-deep"
+              >
+                Send
+              </FakeButton>
+            </div>
 
-        <span className="text-[8px] text-ink-faint">*ikke sikker</span>
+            <span className="text-[8px] text-ink-faint">*ikke sikker</span>
 
-        {/* WCAG 3.3.1: an unhelpful error, below the fold of your attention. */}
-        <p className="h-4 text-center text-[10px] text-[#ea8cad]">
-          {failed && "Noe gikk galt. (feil 0x1F4A9)"}
-        </p>
+            {/* WCAG 3.3.1: an unhelpful error, below the fold of your attention. */}
+            <p className="h-4 text-center text-[10px] text-[#ea8cad]">
+              {failed && "Noe gikk galt. (feil 0x1F4A9)"}
+            </p>
+          </>
+        )}
       </div>
 
       {listening && (
